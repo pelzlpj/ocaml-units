@@ -68,23 +68,22 @@ done;;
 
 
 (* exceedingly contrived example to test expansion and grouping of units *)
-let s1  = "g^3*lb/oz*slug^-1/ton^2*slug/lb*tonl^4*tonm^-3*ct/gr^2*tonm^2"
-(* and s2  = "*m^3*ft/in^2/yd^2*mi^-4/pc/AU*Ang^4*yd^5*furlong/pt" *)
-and s2  = "*m^3*ft/in^2*mi^-4*yd^-2/AU/pc*Ang^4*furlong*yd^5/pt"
-and s3  = "*s^-3*min*hr^2*day*min*yr*min^-2"
+let s1  = "g^3*lb/oz*slug^-1/ton^2*slug/lb*tonl^4*Mtonm^-3*ct/gr^2*tonm^2"
+and s2  = "*km^3*ft/in^2*mi^-4*yd^-2/AU/pc*Ang^4*furlong*yd^5/pt"
+and s3  = "*s^-3*min*hr^2*day*min*nyr*min^-2"
 and s4  = "*A^4"
 and s5  = "*R^2/K"
-and s6  = "*N^3/lbf/dyn^2/kip^3*lbf/lbf^2*kip^3"
-and s7  = "*J/erg^2/BTU^3*erg*cal^3*eV*eV"
+and s6  = "*mN^3/lbf/dyn^2/kip^3*lbf/lbf^2*Gkip^3"
+and s7  = "*dJ/merg^2/BTU^3*erg*cal^3*eV*eV"
 and s8  = "*Hz^2"
 and s9  = "*W^-3*hp^3"
-and s10 = "*Pa*atm^0.0*bar^3/mmHg^2/inHg"
+and s10 = "*mPa*atm^0.0*bar^3/mmHg^2/inHg"
 and s11 = "*V^-2"
 and s12 = "*Ohm^2"
 and s13 = "*F^2*F^-3"
 and s14 = "*H"
 and s15 = "*T^4/G^3"
-and s16 = "*Wb^-1/Mx*Wb^2" in
+and s16 = "*Wb^-1/Mx*nWb^2" in
 let total_s = 
    s1 ^ s2 ^ s3 ^ s4 ^ s5 ^ s6 ^ s7 ^ s8 ^ s9 ^ s10 ^ s11 ^ 
   s12 ^ s13 ^ s14 ^ s15 ^ s16 
@@ -93,11 +92,11 @@ let contrived = unit_of_string total_s in
 let grouped_units = group_units contrived false in
 let gu_str = string_of_unit grouped_units.factors in
 print_endline ("grouped      = " ^ (string_of_float grouped_units.coeff) ^ gu_str);
-print_endline ("expected     = 1.76804093547e-15G*H*F^-1*Ohm^2*V^-2*Pa*Hz^2*eV^2*lbf^-1*K*A^4*tonm^2*m^3*day");
+print_endline ("expected     = 1.76804093547e-37G*H*F^-1*Ohm^2*V^-2*mPa*Hz^2*eV^2*lbf^-1*K*A^4*tonm^2*km^3*day");
 let stand_units = standardize_units contrived in
 print_endline ("standardized = " ^ (string_of_float stand_units.coeff) ^ 
 (string_of_unit stand_units.factors));
-print_endline ("expected     = 8.81537531531e-47K*A^-3*kg^7*m^9*s^-13");;
+print_endline ("expected     = 8.81537531531e-63K*A^-3*kg^7*m^9*s^-13");;
 
 
 (* arch-tag: DO_NOT_CHANGE_4d4f58ad-d94a-40ad-9582-4782ed4828a2 *)

@@ -6,7 +6,15 @@ let unit_failwith ss =
 
 type mass_fund_t = 
    | Gram
-   | Pound;;
+   | PoundMass
+   | Ounce
+   | Slug
+   | TroyPound
+   | ShortTon
+   | LongTon
+   | MetricTon
+   | Carat
+   | Grain
 
 type distance_fund_t =
    | Meter
@@ -30,7 +38,9 @@ type time_fund_t =
 
 type current_fund_t = Ampere;;
    
-type temperature_fund_t = Kelvin;;
+type temperature_fund_t = 
+   | Kelvin
+   | Rankine;;
 
 type composite_t =
    | Newton
@@ -89,7 +99,14 @@ type unit_t = {
 
 let unit_string_table = Hashtbl.create 50;;
 Hashtbl.add unit_string_table "g"       ( Mass        ( NoPrefix, Gram));
-Hashtbl.add unit_string_table "lb"      ( Mass        ( NoPrefix, Pound));
+Hashtbl.add unit_string_table "lb"      ( Mass        ( NoPrefix, PoundMass));
+Hashtbl.add unit_string_table "oz"      ( Mass        ( NoPrefix, Ounce));
+Hashtbl.add unit_string_table "slug"    ( Mass        ( NoPrefix, Slug));
+Hashtbl.add unit_string_table "ton"     ( Mass        ( NoPrefix, ShortTon));
+Hashtbl.add unit_string_table "tonl"    ( Mass        ( NoPrefix, LongTon));
+Hashtbl.add unit_string_table "tonm"    ( Mass        ( NoPrefix, MetricTon));
+Hashtbl.add unit_string_table "ct"      ( Mass        ( NoPrefix, Carat));
+Hashtbl.add unit_string_table "gr"      ( Mass        ( NoPrefix, Grain));
 Hashtbl.add unit_string_table "m"       ( Distance    ( NoPrefix, Meter));
 Hashtbl.add unit_string_table "ft"      ( Distance    ( NoPrefix, Foot));
 Hashtbl.add unit_string_table "in"      ( Distance    ( NoPrefix, Inch));
@@ -108,6 +125,7 @@ Hashtbl.add unit_string_table "hr"      ( Time        ( NoPrefix, Hour));
 Hashtbl.add unit_string_table "day"     ( Time        ( NoPrefix, Day));
 Hashtbl.add unit_string_table "A"       ( Current     ( NoPrefix, Ampere));
 Hashtbl.add unit_string_table "K"       ( Temperature ( NoPrefix, Kelvin));
+Hashtbl.add unit_string_table "R"       ( Temperature ( NoPrefix, Rankine));
 Hashtbl.add unit_string_table "N"       ( Composite   ( NoPrefix, Newton));
 Hashtbl.add unit_string_table "C"       ( Composite   ( NoPrefix, Coulomb));
 Hashtbl.add unit_string_table "Hz"      ( Composite   ( NoPrefix, Hertz));;
@@ -199,13 +217,98 @@ let rec convert_mass (m1 : mass_fund_t) (m2 : mass_fund_t) =
    | Gram ->
       begin match m2 with
       | Gram  -> 1.0
-      | Pound -> 0.00220462262
+      | PoundMass -> 0.00220462262
+      | Ounce -> 1.0 /. 28.3495231
+      | Slug -> 1.0 /. 14593.9029
+      | TroyPound -> 1.0 /. 373.2417216
+      | ShortTon -> 1.0 /. 907184.740004
+      | LongTon -> 1.0 /. 1016046.9088
+      | MetricTon -> 1.0e-6
+      | Carat -> 5.0
+      | Grain -> 15.4323583529
       end
-   | Pound ->
+   | PoundMass ->
       begin match m2 with
-      | Pound -> 1.0
+      | PoundMass -> 1.0
+      | Ounce -> 16.0
+      | Slug -> 1.0 /. 32.1740485564
+      | TroyPound -> 1.0 /. 0.822857142856
+      | ShortTon -> 0.0005
+      | LongTon -> 1.0 /. 2240.0
+      | MetricTon -> 0.00045359237
+      | Carat -> 2267.96185
+      | Grain -> 7000.0
+      | _     -> 1.0 /. (convert_mass m2 m1)
+      end
+   | Ounce ->
+      begin match m2 with
+      | Ounce -> 1.0
+      | Slug -> 1.0 /. 514.784776904
+      | TroyPound -> 1.0 /. 13.1657142857
+      | ShortTon -> 1.0 /. 32000.0
+      | LongTon -> 1.0 /. 35840.0
+      | MetricTon -> 35273.9619496
+      | Carat -> 141.747615625
+      | Grain -> 437.5
+      | _     -> 1.0 /. (convert_mass m2 m1)
+      end
+   | Slug ->
+      begin match m2 with
+      | Slug -> 1.0
+      | TroyPound -> 39.1004062319
+      | ShortTon -> 1.60870242782e-2
+      | LongTon -> 1.0 /. 69.6213283844
+      | MetricTon -> 1.0 /. 68.5217658568
+      | Carat -> 1.0 /. 72969.5146858
+      | Grain -> 225218.339895
+      | _     -> 1.0 /. (convert_mass m2 m1)
+      end
+   | TroyPound ->
+      begin match m2 with
+      | TroyPound -> 1.0
+      | ShortTon -> 1.0 /. 2430.55555555
+      | LongTon -> 1.0 /. 2722.22222222
+      | MetricTon -> 3.732417216e-4
+      | Carat -> 1866.208608
+      | Grain -> 5760.0
+      | _     -> 1.0 /. (convert_mass m2 m1)
+      end
+   | ShortTon ->
+      begin match m2 with
+      | ShortTon -> 1.0
+      | LongTon -> 1.0 /. 1.12
+      | MetricTon -> 0.907184740004
+      | Carat -> 4535923.7
+      | Grain -> 14.0e6
+      | _     -> 1.0 /. (convert_mass m2 m1)
+      end
+   | LongTon ->
+      begin match m2 with
+      | LongTon -> 1.0
+      | MetricTon -> 1.0160469088
+      | Carat -> 5080234.54401
+      | Grain -> 1.568e7
+      | _     -> 1.0 /. (convert_mass m2 m1)
+      end
+   | MetricTon ->
+      begin match m2 with
+      | MetricTon -> 1.0
+      | Carat -> 5.0e6
+      | Grain -> 15432358.3529
+      | _     -> 1.0 /. (convert_mass m2 m1)
+      end
+   | Carat ->
+      begin match m2 with
+      | Carat -> 1.0
+      | Grain -> 1.0 /. 0.32399455
+      | _     -> 1.0 /. (convert_mass m2 m1)
+      end
+   | Grain ->
+      begin match m2 with
+      | Grain -> 1.0
       | _     -> 1.0 /. (convert_mass m2 m1)
       end;;
+
 
 (* compute conversion factors between fundamental units of distance *)
 let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
@@ -381,6 +484,12 @@ let rec convert_temperature (t1 : temperature_fund_t)
    | Kelvin ->
       begin match t2 with
       | Kelvin  -> 1.0
+      | Rankine -> 9.0 /. 5.0
+      end
+   | Rankine ->
+      begin match t2 with
+      | Rankine -> 1.0
+      | _ -> 1.0 /. (convert_temperature t2 t1)
       end;;
 
 (* compute conversion factors between composite units *)

@@ -852,7 +852,7 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | PoundForce -> 0.2248089431
       | Dyne       -> 100000.0
       | Kip        -> 0.0002248089431
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | PoundForce ->
       begin match c2 with
@@ -860,20 +860,20 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | Newton     -> 1.0 /. (convert_composite c2 c1)
       | Dyne       -> 444822.161526
       | Kip        -> 0.001
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Dyne ->
       begin match c2 with
       | Dyne -> 1.0
       | Kip  -> 2.248089431e-9
       | Newton | PoundForce -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Kip ->
       begin match c2 with
       | Kip -> 1.0
       | Newton | PoundForce | Dyne -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Joule ->
       begin match c2 with
@@ -882,7 +882,7 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | Calorie -> 1.0 /. 4.1868
       | Btu -> 9.47817120313e-4
       | ElectronVolt -> 1.0 /. 1.60217733e-19
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Erg ->
       begin match c2 with
@@ -891,7 +891,7 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | Btu -> 9.47817120313e-11
       | ElectronVolt -> 624150636309.0
       | Joule -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Calorie ->
       begin match c2 with
@@ -899,42 +899,42 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | Btu -> 3.96832071933e-3
       | ElectronVolt -> 2.6131938841e19
       | Joule | Erg -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Btu ->
       begin match c2 with
       | Btu -> 1.0
       | ElectronVolt -> 6.58513781755e21
       | Joule | Erg | Calorie -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | ElectronVolt ->
       begin match c2 with
       | ElectronVolt -> 1.0
       | Joule | Erg | Calorie | Btu -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Coulomb ->
       begin match c2 with
       | Coulomb -> 1.0
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Hertz ->
       begin match c2 with
       | Hertz -> 1.0
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Watt ->
       begin match c2 with
       | Watt -> 1.0
       | Horsepower -> 1.3410220896e-3
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Horsepower ->
       begin match c2 with
       | Horsepower -> 1.0
       | Watt -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Pascal ->
       begin match c2 with
@@ -943,7 +943,7 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | Bar -> 1.0e-5
       | MillimetersMercury -> 7.50061682704e-3
       | InchesMercury -> 2.9529987508e-4
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Atmosphere ->
       begin match c2 with
@@ -952,7 +952,7 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | MillimetersMercury -> 760.0
       | InchesMercury -> 29.9212598425
       | Pascal -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Bar ->
       begin match c2 with
@@ -960,64 +960,64 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | MillimetersMercury -> 750.061682704
       | InchesMercury -> 29.529987508
       | Pascal | Atmosphere -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | MillimetersMercury ->
       begin match c2 with
       | MillimetersMercury -> 1.0
       | InchesMercury -> 3.93700787402e-2
       | Pascal | Atmosphere | Bar -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | InchesMercury ->
       begin match c2 with
       | InchesMercury -> 1.0
       | Pascal | Atmosphere | Bar | MillimetersMercury -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Volt ->
       begin match c2 with
       | Volt -> 1.0
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Ohm ->
       begin match c2 with
       | Ohm -> 1.0
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Farad ->
       begin match c2 with
       | Farad -> 1.0
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Henry ->
       begin match c2 with
       | Henry -> 1.0
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Tesla ->
       begin match c2 with
       | Tesla -> 1.0
       | Gauss -> 10000.0
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Gauss ->
       begin match c2 with
       | Gauss -> 1.0
       | Tesla -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Weber ->
       begin match c2 with
       | Weber -> 1.0
       | Maxwell -> 1.0e8
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
    | Maxwell ->
       begin match c2 with
       | Maxwell -> 1.0
       | Weber -> 1.0 /. (convert_composite c2 c1)
-      | _ -> unit_failwith "Inconsistent composite units"
+      | _ -> unit_failwith "inconsistent composite units"
       end
 
    
@@ -1026,7 +1026,7 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
 let convert_factor (u1 : unit_factor_power_t) (u2 : unit_factor_power_t) =
    if u1.power <> u2.power then begin
       Printf.printf "pow1 = %f, pow2 = %f\n" u1.power u2.power;
-      unit_failwith "Units have inconsistent power"
+      unit_failwith "units have inconsistent power"
    end else
       match u1.factor with
       | Mass (pre1, m1) ->
@@ -1034,42 +1034,42 @@ let convert_factor (u1 : unit_factor_power_t) (u2 : unit_factor_power_t) =
          | Mass (pre2, m2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_mass m1 m2) ** u1.power
-         | _ -> unit_failwith "Inconsistent units"
+         | _ -> unit_failwith "inconsistent units"
          end
       | Distance (pre1, d1) ->
          begin match u2.factor with
          | Distance (pre2, d2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_distance d1 d2) ** u1.power
-         | _ -> unit_failwith "Inconsistent units"
+         | _ -> unit_failwith "inconsistent units"
          end
       | Time (pre1, t1) ->
          begin match u2.factor with
          | Time (pre2, t2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_time t1 t2) ** u1.power
-         | _ -> unit_failwith "Inconsistent units"
+         | _ -> unit_failwith "inconsistent units"
          end
       | Current (pre1, c1) ->
          begin match u2.factor with
          | Current (pre2, c2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_current c1 c2) ** u1.power
-         | _ -> unit_failwith "Inconsistent units"
+         | _ -> unit_failwith "inconsistent units"
          end
       | Temperature (pre1, t1) ->
          begin match u2.factor with
          | Temperature (pre2, t2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_temperature t1 t2) ** u1.power
-         | _ -> unit_failwith "Inconsistent units"
+         | _ -> unit_failwith "inconsistent units"
          end
       | Composite (pre1, c1) ->
          begin match u2.factor with
          | Composite (pre2, c2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_composite c1 c2) ** u1.power
-         | _ -> unit_failwith "Inconsistent units"
+         | _ -> unit_failwith "inconsistent units"
          end
 
 
@@ -1224,7 +1224,7 @@ let conversion_factor (u1 : unit_t) (u2 : unit_t) =
    if s1.factors = s2.factors then
       Complex.div s1.coeff s2.coeff
    else
-      unit_failwith "Inconsistent units.";;
+      unit_failwith "inconsistent units";;
 
 
 (* compute the conversion factor between two units,
@@ -1278,7 +1278,7 @@ let dimension_of_string ss =
    let rec test_prefixes plist =
       match plist with
       | [] ->
-         unit_failwith "Failed to match a unit prefix"
+         unit_failwith "failed to match a unit prefix"
       | head :: tail ->
          if is_prefix head ss then
             let pre_len = String.length head in
@@ -1305,7 +1305,7 @@ let dimension_of_string ss =
       try
          test_prefixes prefix_list
       with Units_error _ ->
-         let err_str = Printf.sprintf "Unrecognized unit \"%s\"" ss in
+         let err_str = Printf.sprintf "unrecognized unit \"%s\"" ss in
          unit_failwith err_str;;
 
 
@@ -1321,10 +1321,10 @@ let unit_of_string ss =
       let split_term = Str.split pow_regex tt in
       let len = List.length split_term in
       if len = 0 then
-         unit_failwith "Empty power split in unit_of_string()"
+         unit_failwith "empty power split in unit_of_string()"
       else if len = 1 then
          if String.contains tt '^' then
-            unit_failwith "Illegal unit exponentiation syntax"
+            unit_failwith "illegal unit exponentiation syntax"
          else
             {factor = dimension_of_string (List.hd split_term); power = 1.0}
       else if len = 2 then
@@ -1332,13 +1332,13 @@ let unit_of_string ss =
             let pow_str = List.hd (List.tl split_term) in
             try float_of_string pow_str
             with _ -> 
-               let err_msg = Printf.sprintf "Illegal unit power: \"%s\"" pow_str in
+               let err_msg = Printf.sprintf "illegal unit power: \"%s\"" pow_str in
                unit_failwith err_msg
          in
          {factor = dimension_of_string (List.hd split_term); power = pow}
       else
          let err_msg = 
-            Printf.sprintf "Too many exponentiations in unit term \"%s\"" tt
+            Printf.sprintf "too many exponentiations in unit term \"%s\"" tt
          in
          unit_failwith err_msg
    in
@@ -1355,9 +1355,9 @@ let unit_of_string ss =
          let div_list = Str.split div_regex head in
          let div_list_comp = 
             if List.length div_list = 0 then
-               unit_failwith "Empty unit string"
+               unit_failwith "empty unit string"
             else if List.length div_list = 1 && String.contains head '/' then
-               unit_failwith "Illegal unit division syntax"
+               unit_failwith "illegal unit division syntax"
             else
                factor_of_term (List.hd div_list) :: (List.map flip_powers
                (List.tl div_list))

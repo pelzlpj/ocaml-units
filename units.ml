@@ -1238,10 +1238,12 @@ let conversion_factor_unitary (u1 : unit_t) (u2 : unit_t) =
 
 
 (* multiply two units *)
-let mult (u1 : unit_t) (u2 : unit_t) = {
+let mult (u1 : unit_t) (u2 : unit_t) = 
+   let new_unit = {
    coeff   = Complex.mul u1.coeff u2.coeff;
    factors = u1.factors @ u2.factors
-};;
+   } in
+   group_units new_unit false;;
 
 
 (* divide one unit by another *)
@@ -1250,10 +1252,13 @@ let div (u1 : unit_t) (u2 : unit_t) =
       factor = f.factor;
       power  = ~-. (f.power)
    } in
-   let divisors = List.map flip_powers u2.factors in {
+   let divisors = List.map flip_powers u2.factors in 
+   let new_unit = {
       coeff   = Complex.div u1.coeff u2.coeff;
       factors = u1.factors @ divisors
-   };;
+   } in
+   group_units new_unit false;;
+
 
 
 (* raise a unit to a power *)
@@ -1366,7 +1371,7 @@ let unit_of_string ss =
    in
    let mult_terms = Str.split mult_regex ss in
    let fact_rev = process_mult_terms mult_terms [] in
-   {coeff = Complex.one; factors = List.rev fact_rev};;
+   group_units {coeff = Complex.one; factors = List.rev fact_rev} false;;
             
 
 let string_of_unit (uu : unit_factor_power_t list) =

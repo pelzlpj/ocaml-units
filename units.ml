@@ -58,7 +58,7 @@ type current_unit_t     = prefix_t * current_fund_t;;
 type temperature_unit_t = prefix_t * temperature_fund_t;;
 type composite_unit_t   = prefix_t * composite_t;;
 
-type fund_unit_t =
+type dimension_t =
    | Mass of mass_unit_t
    | Distance of distance_unit_t
    | Time of time_unit_t
@@ -66,14 +66,14 @@ type fund_unit_t =
    | Temperature of temperature_unit_t
    | Composite of composite_unit_t
 
-type unit_component_power_t = {
-   component : fund_unit_t;
-   power     : float
+type unit_factor_power_t = {
+   factor : dimension_t;
+   power  : float
 };;
 
 type unit_t = {
-   coeff      : float;
-   components : unit_component_power_t list
+   coeff   : float;
+   factors : unit_factor_power_t list
 };;
 
 
@@ -142,34 +142,34 @@ let prefix_value (pre : prefix_t) =
    | Yotta    -> 1e24;;
 
 
-(* expand out composite components into fundamental units of 
+(* expand out composite factors into fundamental units of 
  * space, time, mass, current *)
-let expand_component (uc : unit_component_power_t) =
-   match uc.component with
+let expand_factor (uc : unit_factor_power_t) =
+   match uc.factor with
    | Composite (pre, c) ->
       begin match c with
       | Newton -> {
          coeff = prefix_value pre;
-         components = [
-            {component = Mass (Kilo, Gram); power = 1.0};
-            {component = Distance (NoPrefix, Meter); power = 1.0};
-            {component = Time (NoPrefix, Second); power = ~-. 2.0}
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
          ] }
       | Coulomb -> {
          coeff = prefix_value pre;
-         components = [
-            {component = Current (NoPrefix, Ampere); power = 1.0};
-            {component = Time (NoPrefix, Second); power = 1.0}
+         factors = [
+            {factor = Current (NoPrefix, Ampere); power = 1.0};
+            {factor = Time (NoPrefix, Second); power = 1.0}
          ] }
       | Hertz -> {
          coeff = prefix_value pre;
-         components = [
-            {component = Time (NoPrefix, Second); power = ~-. 1.0}
+         factors = [
+            {factor = Time (NoPrefix, Second); power = ~-. 1.0}
          ] }
       end
    | _ -> {
       coeff = 1.0;
-      components = [ uc ]
+      factors = [ uc ]
       };;
 
 
@@ -266,50 +266,50 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       end;;
    
 
-(* compute the conversion factor between two generic unit components *)
-let convert_component (u1 : unit_component_power_t) (u2 : unit_component_power_t) =
+(* compute the conversion factor between two generic unit factors *)
+let convert_factor (u1 : unit_factor_power_t) (u2 : unit_factor_power_t) =
    if u1.power <> u2.power then begin
       Printf.printf "pow1 = %f, pow2 = %f\n" u1.power u2.power;
       unit_failwith "Units have inconsistent power"
    end else
-      match u1.component with
+      match u1.factor with
       | Mass (pre1, m1) ->
-         begin match u2.component with
+         begin match u2.factor with
          | Mass (pre2, m2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_mass m1 m2) ** u1.power
          | _ -> unit_failwith "Inconsistent units"
          end
       | Distance (pre1, d1) ->
-         begin match u2.component with
+         begin match u2.factor with
          | Distance (pre2, d2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_distance d1 d2) ** u1.power
          | _ -> unit_failwith "Inconsistent units"
          end
       | Time (pre1, t1) ->
-         begin match u2.component with
+         begin match u2.factor with
          | Time (pre2, t2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_time t1 t2) ** u1.power
          | _ -> unit_failwith "Inconsistent units"
          end
       | Current (pre1, c1) ->
-         begin match u2.component with
+         begin match u2.factor with
          | Current (pre2, c2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_current c1 c2) ** u1.power
          | _ -> unit_failwith "Inconsistent units"
          end
       | Temperature (pre1, t1) ->
-         begin match u2.component with
+         begin match u2.factor with
          | Temperature (pre2, t2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_temperature t1 t2) ** u1.power
          | _ -> unit_failwith "Inconsistent units"
          end
       | Composite (pre1, c1) ->
-         begin match u2.component with
+         begin match u2.factor with
          | Composite (pre2, c2) ->
             let coeff = (prefix_value pre1) /. (prefix_value pre2) in
             (coeff *. convert_composite c1 c2) ** u1.power
@@ -322,49 +322,49 @@ let convert_component (u1 : unit_component_power_t) (u2 : unit_component_power_t
  * s*min -> 60 s^2.  If 'standardize' = true, then units of mass, distance,
  * etc. will be converted to fundamental units (kg, m, s, etc.). *)
 let group_units (ulist : unit_t) (standardize : bool) =
-   let total_mass : unit_component_power_t option ref        = ref None
-   and total_distance : unit_component_power_t option ref    = ref None
-   and total_time : unit_component_power_t option ref        = ref None
-   and total_current : unit_component_power_t option ref     = ref None
-   and total_temperature : unit_component_power_t option ref = ref None
-   and total_composite : unit_component_power_t option ref   = ref None
-   and total_coeff                                           = ref 1.0 in
-   let process_component uc =
-      let process_component_aux total target_comp =
+   let total_mass : unit_factor_power_t option ref        = ref None
+   and total_distance : unit_factor_power_t option ref    = ref None
+   and total_time : unit_factor_power_t option ref        = ref None
+   and total_current : unit_factor_power_t option ref     = ref None
+   and total_temperature : unit_factor_power_t option ref = ref None
+   and total_composite : unit_factor_power_t option ref   = ref None
+   and total_coeff                                        = ref 1.0 in
+   let process_factor uc =
+      let process_factor_aux total target_comp =
          begin match !total with
          | None ->
             if standardize then begin
                let target_unit = {
-                  component = target_comp;
-                  power     = uc.power
+                  factor = target_comp;
+                  power  = uc.power
                } in
-               let conversion = convert_component uc target_unit in
+               let conversion = convert_factor uc target_unit in
                total_coeff := !total_coeff *. conversion;
                total       := Some target_unit
             end else
                total := Some uc
          | Some tot ->
-               let conversion = convert_component uc
-               {component = tot.component; power = uc.power} in
+               let conversion = convert_factor uc
+               {factor = tot.factor; power = uc.power} in
                total_coeff := !total_coeff *. conversion;
                let p = tot.power +. uc.power in
                if p = 0.0 then
                   total := None
                else
-                  total := Some {component = tot.component; power = p}
+                  total := Some {factor = tot.factor; power = p}
          end
       in
-      match uc.component with
+      match uc.factor with
       | Mass m ->
-         process_component_aux total_mass (Mass (Kilo, Gram))
+         process_factor_aux total_mass (Mass (Kilo, Gram))
       | Distance d ->
-         process_component_aux total_distance (Distance (NoPrefix, Meter))
+         process_factor_aux total_distance (Distance (NoPrefix, Meter))
       | Time t ->
-         process_component_aux total_time (Time (NoPrefix, Second))
+         process_factor_aux total_time (Time (NoPrefix, Second))
       | Current c ->
-         process_component_aux total_current (Current (NoPrefix, Ampere))
+         process_factor_aux total_current (Current (NoPrefix, Ampere))
       | Temperature t ->
-         process_component_aux total_temperature (Temperature (NoPrefix, Kelvin))
+         process_factor_aux total_temperature (Temperature (NoPrefix, Kelvin))
       | Composite c ->
          if standardize then
             unit_failwith "Encountered Composite argument to group_units() with standardized = true"
@@ -373,39 +373,39 @@ let group_units (ulist : unit_t) (standardize : bool) =
             | None ->
                total_composite := Some uc
             | Some tc ->
-               let conversion = convert_component uc
-               {component = tc.component; power = uc.power} in
+               let conversion = convert_factor uc
+               {factor = tc.factor; power = uc.power} in
                total_coeff := !total_coeff *. conversion;
                let p = tc.power +. uc.power in
                if p = 0.0 then
                   total_composite := None
                else
-                  total_composite := Some {component = tc.component; power = p}
+                  total_composite := Some {factor = tc.factor; power = p}
             end
    in
-   List.iter process_component ulist.components;
-   let result_components = ref [] in
+   List.iter process_factor ulist.factors;
+   let result_factors = ref [] in
    begin match !total_time with
-   | None -> ()
-   | Some t -> result_components := t :: !result_components
+   | None   -> ()
+   | Some t -> result_factors := t :: !result_factors
    end;
    begin match !total_distance with
    | None -> ()
-   | Some d -> result_components := d :: !result_components
+   | Some d -> result_factors := d :: !result_factors
    end;
    begin match !total_mass with
    | None -> ()
-   | Some m -> result_components := m :: !result_components
+   | Some m -> result_factors := m :: !result_factors
    end;
    begin match !total_current with
    | None -> ()
-   | Some c -> result_components := c :: !result_components
+   | Some c -> result_factors := c :: !result_factors
    end;
    begin match !total_composite with
    | None -> ()
-   | Some c -> result_components := c :: !result_components
+   | Some c -> result_factors := c :: !result_factors
    end;
-   {coeff = ulist.coeff *. !total_coeff; components = !result_components};; 
+   {coeff = ulist.coeff *. !total_coeff; factors = !result_factors};; 
    
 
 (* expand out any composite units, leaving a list that depends
@@ -414,15 +414,15 @@ let expand_units (u : unit_t) =
    let rec expand_units_aux in_list out_list scalar =
       match in_list with
       | [] -> {
-         coeff = scalar;
-         components = out_list
+         coeff   = scalar;
+         factors = out_list
          }
       | head :: tail ->
-         let temp = expand_component head in
-         expand_units_aux tail (temp.components @ out_list) 
+         let temp = expand_factor head in
+         expand_units_aux tail (temp.factors @ out_list) 
          (scalar *. temp.coeff)
    in
-   expand_units_aux u.components [] u.coeff;;
+   expand_units_aux u.factors [] u.coeff;;
 
 
 (* refactor a list of units into a simplified set of fundamental
@@ -435,7 +435,7 @@ let standardize_units (u : unit_t) =
 let conversion_factor (u1 : unit_t) (u2 : unit_t) =
    let s1 = standardize_units u1
    and s2 = standardize_units u2 in
-   if s1.components = s2.components then
+   if s1.factors = s2.factors then
       s1.coeff /. s2.coeff
    else
       unit_failwith "Inconsistent units.";;
@@ -447,7 +447,7 @@ let is_prefix pre word =
    else
       false;;
 
-let fund_unit_of_string ss =
+let dimension_of_string ss =
    let rec test_prefixes plist =
       match plist with
       | [] ->
@@ -490,13 +490,13 @@ let unit_of_string ss =
    and div_regex  = Str.regexp "/" 
    and pow_regex  = Str.regexp "\\^" in
    let mult_list  = Str.split mult_regex ss in
-   let component_of_term (tt : string) : unit_component_power_t =
+   let factor_of_term (tt : string) : unit_factor_power_t =
       let split_term = Str.split pow_regex tt in
       let len = List.length split_term in
       if len = 0 then
          unit_failwith "Empty power split in unit_of_string()"
       else if len = 1 then
-         {component = fund_unit_of_string (List.hd split_term); power = 1.0}
+         {factor = dimension_of_string (List.hd split_term); power = 1.0}
       else if len = 2 then
          let pow =
             let pow_str = List.hd (List.tl split_term) in
@@ -505,7 +505,7 @@ let unit_of_string ss =
                let err_msg = Printf.sprintf "Illegal unit power: \"%s\"" pow_str in
                unit_failwith err_msg
          in
-         {component = fund_unit_of_string (List.hd split_term); power = pow}
+         {factor = dimension_of_string (List.hd split_term); power = pow}
       else
          let err_msg = 
             Printf.sprintf "Too many exponentiations in unit term \"%s\"" tt
@@ -517,9 +517,9 @@ let unit_of_string ss =
       | [] ->
          result
       | head :: tail ->
-         let comp = component_of_term head in
+         let comp = factor_of_term head in
          let new_result = 
-            {component = comp.component; power = ~-. (comp.power)} :: 
+            {factor = comp.factor; power = ~-. (comp.power)} :: 
             result
          in
          process_div_terms tail new_result
@@ -534,13 +534,13 @@ let unit_of_string ss =
             if List.length div_list = 0 then
                unit_failwith "Empty unit string"
             else
-               component_of_term (List.hd div_list) :: (process_div_terms
+               factor_of_term (List.hd div_list) :: (process_div_terms
                (List.tl div_list) [])
          in
          process_mult_terms tail (div_list_comp @ result)
    in
    let mult_terms = Str.split mult_regex ss in
-   {coeff = 1.0; components = process_mult_terms mult_terms []};;
+   {coeff = 1.0; factors = process_mult_terms mult_terms []};;
             
 
 

@@ -76,6 +76,8 @@ type temperature_fund_t =
 
 type amount_fund_t = Mole;;
 
+type intensity_fund_t = Candela;;
+
 type composite_t =
    | Newton
    | PoundForce
@@ -102,7 +104,9 @@ type composite_t =
    | Tesla
    | Gauss
    | Weber
-   | Maxwell;;
+   | Maxwell
+   | Lumen
+   | Lux;;
 
 type prefix_t =
    | NoPrefix
@@ -134,6 +138,7 @@ type time_unit_t        = prefix_t * time_fund_t;;
 type current_unit_t     = prefix_t * current_fund_t;;
 type temperature_unit_t = prefix_t * temperature_fund_t;;
 type amount_unit_t      = prefix_t * amount_fund_t;;
+type intensity_unit_t   = prefix_t * intensity_fund_t;;
 type composite_unit_t   = prefix_t * composite_t;;
 
 type dimension_t =
@@ -143,6 +148,7 @@ type dimension_t =
    | Current of current_unit_t
    | Temperature of temperature_unit_t
    | Amount of amount_unit_t
+   | Intensity of intensity_unit_t
    | Composite of composite_unit_t
 
 type unit_factor_power_t = {
@@ -188,6 +194,7 @@ Hashtbl.add unit_string_table "A"       ( Current     ( NoPrefix, Ampere));
 Hashtbl.add unit_string_table "K"       ( Temperature ( NoPrefix, Kelvin));
 Hashtbl.add unit_string_table "R"       ( Temperature ( NoPrefix, Rankine));
 Hashtbl.add unit_string_table "mol"     ( Amount      ( NoPrefix, Mole));
+Hashtbl.add unit_string_table "cd"      ( Intensity   ( NoPrefix, Candela));
 Hashtbl.add unit_string_table "N"       ( Composite   ( NoPrefix, Newton));
 Hashtbl.add unit_string_table "lbf"     ( Composite   ( NoPrefix, PoundForce));
 Hashtbl.add unit_string_table "dyn"     ( Composite   ( NoPrefix, Dyne));
@@ -212,8 +219,10 @@ Hashtbl.add unit_string_table "F"       ( Composite   ( NoPrefix, Farad));
 Hashtbl.add unit_string_table "H"       ( Composite   ( NoPrefix, Henry));
 Hashtbl.add unit_string_table "T"       ( Composite   ( NoPrefix, Tesla));
 Hashtbl.add unit_string_table "G"       ( Composite   ( NoPrefix, Gauss));
-Hashtbl.add unit_string_table "Wb"      ( Composite   ( NoPrefix, Weber));;
-Hashtbl.add unit_string_table "Mx"      ( Composite   ( NoPrefix, Maxwell));;
+Hashtbl.add unit_string_table "Wb"      ( Composite   ( NoPrefix, Weber));
+Hashtbl.add unit_string_table "Mx"      ( Composite   ( NoPrefix, Maxwell));
+Hashtbl.add unit_string_table "lm"      ( Composite   ( NoPrefix, Lumen));
+Hashtbl.add unit_string_table "lx"      ( Composite   ( NoPrefix, Lux));;
 
 
 let prefix_string_table = Hashtbl.create 25;;
@@ -339,6 +348,10 @@ let string_of_amount (a : amount_fund_t) =
    match a with
    | Mole -> "mol";;
 
+let string_of_intensity (i : intensity_fund_t) =
+   match i with
+   | Candela -> "cd";;
+
 let string_of_composite (c : composite_t) = 
    match c with
    | Newton             -> "N"
@@ -367,6 +380,8 @@ let string_of_composite (c : composite_t) =
    | Gauss              -> "G"
    | Weber              -> "Wb"
    | Maxwell            -> "Mw"
+   | Lumen              -> "lm"
+   | Lux                -> "lx";;
 
 
 
@@ -560,6 +575,17 @@ let expand_factor (uc : unit_factor_power_t) =
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power};
             {factor = Current (NoPrefix, Ampere); power = ~-. 1.0 *. uc.power}
+         ] }
+      | Lumen -> {
+         coeff = cpow (prefix_value pre) uc.power;
+         factors = [
+            {factor = Intensity (NoPrefix, Candela); power = 1.0 *. uc.power}
+         ] }
+      | Lux -> {
+         coeff = cpow (prefix_value pre) uc.power;
+         factors = [
+            {factor = Intensity (NoPrefix, Candela); power = 1.0 *. uc.power};
+            {factor = Distance (NoPrefix, Meter); power = ~-. 2.0 *. uc.power}
          ] }
       end
    | _ -> {
@@ -885,6 +911,15 @@ let rec convert_amount (a1 : amount_fund_t) (a2 : amount_fund_t) =
       end;;
 
 
+(* compute conversion factors between fundamental units of intensity *)
+let rec convert_intensity (i1 : intensity_fund_t) (i2 : intensity_fund_t) =
+   match i1 with
+   | Candela ->
+      begin match i2 with
+      | Candela -> 1.0
+      end;;
+
+
 (* compute conversion factors between composite units *)
 let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
    match c1 with
@@ -1061,6 +1096,16 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | Weber -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "inconsistent composite units"
       end
+   | Lumen ->
+      begin match c2 with
+      | Lumen -> 1.0
+      | _ -> unit_failwith "inconsistent composite units"
+      end
+   | Lux ->
+      begin match c2 with
+      | Lux -> 1.0
+      | _ -> unit_failwith "inconsistent composite units"
+      end
 
    
 
@@ -1113,6 +1158,13 @@ let convert_factor (u1 : unit_factor_power_t) (u2 : unit_factor_power_t) =
             (coeff *. convert_amount a1 a2) ** u1.power
          | _ -> unit_failwith "inconsistent units"
          end
+      | Intensity (pre1, i1) ->
+         begin match u2.factor with
+         | Intensity (pre2, i2) ->
+            let coeff = (prefix_value pre1) /. (prefix_value pre2) in
+            (coeff *. convert_intensity i1 i2) ** u1.power
+         | _ -> unit_failwith "inconsistent units"
+         end
       | Composite (pre1, c1) ->
          begin match u2.factor with
          | Composite (pre2, c2) ->
@@ -1133,6 +1185,7 @@ let group_units (ulist : unit_t) (standardize : bool) =
    and total_current     = ref None
    and total_temperature = ref None
    and total_amount      = ref None
+   and total_intensity   = ref None
    and total_force       = ref None
    and total_energy      = ref None
    and total_charge      = ref None
@@ -1145,6 +1198,8 @@ let group_units (ulist : unit_t) (standardize : bool) =
    and total_ind         = ref None
    and total_mag         = ref None
    and total_flux        = ref None
+   and total_lumflux     = ref None
+   and total_illuminance = ref None
    and total_coeff       = ref Complex.one in
    let process_factor uc =
       let process_factor_aux total target_comp =
@@ -1199,6 +1254,8 @@ let group_units (ulist : unit_t) (standardize : bool) =
          process_factor_aux total_temperature (Temperature (NoPrefix, Kelvin))
       | Amount a ->
          process_factor_aux total_amount (Amount (NoPrefix, Mole))
+      | Intensity i ->
+         process_factor_aux total_intensity (Intensity (NoPrefix, Candela))
       | Composite (pre, co) ->
          if standardize then
             unit_failwith "Encountered Composite argument to group_units() with standardized = true"
@@ -1228,6 +1285,10 @@ let group_units (ulist : unit_t) (standardize : bool) =
                process_factor_composite_aux total_mag
             | Weber | Maxwell ->
                process_factor_composite_aux total_flux
+            | Lumen ->
+               process_factor_composite_aux total_lumflux
+            | Lux ->
+               process_factor_composite_aux total_illuminance
             end
    in
    List.iter process_factor ulist.factors;
@@ -1239,9 +1300,9 @@ let group_units (ulist : unit_t) (standardize : bool) =
       end
    in
    let categories = [ total_time; total_distance; total_mass; total_current; 
-   total_temperature; total_amount; total_force; total_energy; total_charge; 
-   total_freq; total_power; total_pressure; total_voltage; total_resist;
-   total_cap; total_ind; total_mag; total_flux ] in
+   total_temperature; total_amount; total_intensity; total_force; total_energy; 
+   total_charge; total_freq; total_power; total_pressure; total_voltage; total_resist;
+   total_cap; total_ind; total_mag; total_flux; total_lumflux; total_illuminance ] in
    List.iter join_factors categories;
    {coeff = Complex.mul ulist.coeff !total_coeff; factors = !result_factors};; 
    
@@ -1350,6 +1411,7 @@ let dimension_of_string ss =
                | Current (_, c)     -> Current (pre, c)
                | Temperature (_, t) -> Temperature (pre, t)
                | Amount (_, a)      -> Amount (pre, a)
+               | Intensity (_, i)   -> Intensity (pre, i)
                | Composite (_, c)   -> Composite (pre, c)
                end
             with Not_found ->
@@ -1454,6 +1516,8 @@ let string_of_unit (uu : unit_factor_power_t list) =
                   (string_of_prefix pre) ^ (string_of_temperature t)
                | Amount (pre, a) ->
                   (string_of_prefix pre) ^ (string_of_amount a)
+               | Intensity (pre, i) ->
+                  (string_of_prefix pre) ^ (string_of_intensity i)
                | Composite (pre, c) ->
                   (string_of_prefix pre) ^ (string_of_composite c)
                end

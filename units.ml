@@ -106,7 +106,13 @@ type composite_t =
    | Weber
    | Maxwell
    | Lumen
-   | Lux;;
+   | Lux
+   | FluidOunce
+   | Cup
+   | Pint
+   | Quart
+   | Gallon
+   | Liter;;
 
 type prefix_t =
    | NoPrefix
@@ -223,6 +229,12 @@ Hashtbl.add unit_string_table "Wb"      ( Composite   ( NoPrefix, Weber));
 Hashtbl.add unit_string_table "Mx"      ( Composite   ( NoPrefix, Maxwell));
 Hashtbl.add unit_string_table "lm"      ( Composite   ( NoPrefix, Lumen));
 Hashtbl.add unit_string_table "lx"      ( Composite   ( NoPrefix, Lux));;
+Hashtbl.add unit_string_table "ozfl"    ( Composite   ( NoPrefix, FluidOunce));;
+Hashtbl.add unit_string_table "cup"     ( Composite   ( NoPrefix, Cup));;
+Hashtbl.add unit_string_table "pt"      ( Composite   ( NoPrefix, Pint));;
+Hashtbl.add unit_string_table "qt"      ( Composite   ( NoPrefix, Quart));;
+Hashtbl.add unit_string_table "gal"     ( Composite   ( NoPrefix, Gallon));;
+Hashtbl.add unit_string_table "L"       ( Composite   ( NoPrefix, Liter));;
 
 
 let prefix_string_table = Hashtbl.create 25;;
@@ -381,7 +393,13 @@ let string_of_composite (c : composite_t) =
    | Weber              -> "Wb"
    | Maxwell            -> "Mw"
    | Lumen              -> "lm"
-   | Lux                -> "lx";;
+   | Lux                -> "lx"
+   | FluidOunce         -> "ozfl"
+   | Cup                -> "cup"
+   | Pint               -> "pt"
+   | Quart              -> "qt"
+   | Gallon             -> "gal"
+   | Liter              -> "L";;
 
 
 
@@ -587,6 +605,36 @@ let expand_factor (uc : unit_factor_power_t) =
             {factor = Intensity (NoPrefix, Candela); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = ~-. 2.0 *. uc.power}
          ] }
+      | FluidOunce -> {
+         coeff = cpow (29.5735295 *. (prefix_value pre)) uc.power;
+         factors = [
+            {factor = Distance (Centi, Meter); power = 3.0 *. uc.power}
+         ] }
+      | Cup -> {
+         coeff = cpow (236.588236 *. (prefix_value pre)) uc.power;
+         factors = [
+            {factor = Distance (Centi, Meter); power = 3.0 *. uc.power}
+         ] }
+      | Pint -> {
+         coeff = cpow (473.176475 *. (prefix_value pre)) uc.power;
+         factors = [
+            {factor = Distance (Centi, Meter); power = 3.0 *. uc.power}
+         ] }
+      | Quart -> {
+         coeff = cpow (946.35295 *. (prefix_value pre)) uc.power;
+         factors = [
+            {factor = Distance (Centi, Meter); power = 3.0 *. uc.power}
+         ] }
+      | Gallon -> {
+         coeff = cpow (3785.4118 *. (prefix_value pre)) uc.power;
+         factors = [
+            {factor = Distance (Centi, Meter); power = 3.0 *. uc.power}
+         ] }
+      | Liter -> {
+         coeff = cpow (1000.0 *. (prefix_value pre)) uc.power;
+         factors = [
+            {factor = Distance (Centi, Meter); power = 3.0 *. uc.power}
+         ] }
       end
    | _ -> {
       coeff = Complex.one;
@@ -599,86 +647,86 @@ let rec convert_mass (m1 : mass_fund_t) (m2 : mass_fund_t) =
    match m1 with
    | Gram ->
       begin match m2 with
-      | Gram  -> 1.0
+      | Gram      -> 1.0
       | PoundMass -> 0.00220462262
-      | Ounce -> 1.0 /. 28.3495231
-      | Slug -> 1.0 /. 14593.9029
+      | Ounce     -> 1.0 /. 28.3495231
+      | Slug      -> 1.0 /. 14593.9029
       | TroyPound -> 1.0 /. 373.2417216
-      | ShortTon -> 1.0 /. 907184.740004
-      | LongTon -> 1.0 /. 1016046.9088
+      | ShortTon  -> 1.0 /. 907184.740004
+      | LongTon   -> 1.0 /. 1016046.9088
       | MetricTon -> 1.0e-6
-      | Carat -> 5.0
-      | Grain -> 15.4323583529
+      | Carat     -> 5.0
+      | Grain     -> 15.4323583529
       end
    | PoundMass ->
       begin match m2 with
       | PoundMass -> 1.0
-      | Ounce -> 16.0
-      | Slug -> 1.0 /. 32.1740485564
+      | Ounce     -> 16.0
+      | Slug      -> 1.0 /. 32.1740485564
       | TroyPound -> 1.0 /. 0.822857142856
-      | ShortTon -> 0.0005
-      | LongTon -> 1.0 /. 2240.0
+      | ShortTon  -> 0.0005
+      | LongTon   -> 1.0 /. 2240.0
       | MetricTon -> 0.00045359237
-      | Carat -> 2267.96185
-      | Grain -> 7000.0
-      | _     -> 1.0 /. (convert_mass m2 m1)
+      | Carat     -> 2267.96185
+      | Grain     -> 7000.0
+      | _         -> 1.0 /. (convert_mass m2 m1)
       end
    | Ounce ->
       begin match m2 with
-      | Ounce -> 1.0
-      | Slug -> 1.0 /. 514.784776904
+      | Ounce     -> 1.0
+      | Slug      -> 1.0 /. 514.784776904
       | TroyPound -> 1.0 /. 13.1657142857
-      | ShortTon -> 1.0 /. 32000.0
-      | LongTon -> 1.0 /. 35840.0
+      | ShortTon  -> 1.0 /. 32000.0
+      | LongTon   -> 1.0 /. 35840.0
       | MetricTon -> 35273.9619496
-      | Carat -> 141.747615625
-      | Grain -> 437.5
-      | _     -> 1.0 /. (convert_mass m2 m1)
+      | Carat     -> 141.747615625
+      | Grain     -> 437.5
+      | _         -> 1.0 /. (convert_mass m2 m1)
       end
    | Slug ->
       begin match m2 with
-      | Slug -> 1.0
+      | Slug      -> 1.0
       | TroyPound -> 39.1004062319
-      | ShortTon -> 1.60870242782e-2
-      | LongTon -> 1.0 /. 69.6213283844
+      | ShortTon  -> 1.60870242782e-2
+      | LongTon   -> 1.0 /. 69.6213283844
       | MetricTon -> 1.0 /. 68.5217658568
-      | Carat -> 1.0 /. 72969.5146858
-      | Grain -> 225218.339895
-      | _     -> 1.0 /. (convert_mass m2 m1)
+      | Carat     -> 1.0 /. 72969.5146858
+      | Grain     -> 225218.339895
+      | _         -> 1.0 /. (convert_mass m2 m1)
       end
    | TroyPound ->
       begin match m2 with
       | TroyPound -> 1.0
-      | ShortTon -> 1.0 /. 2430.55555555
-      | LongTon -> 1.0 /. 2722.22222222
+      | ShortTon  -> 1.0 /. 2430.55555555
+      | LongTon   -> 1.0 /. 2722.22222222
       | MetricTon -> 3.732417216e-4
-      | Carat -> 1866.208608
-      | Grain -> 5760.0
-      | _     -> 1.0 /. (convert_mass m2 m1)
+      | Carat     -> 1866.208608
+      | Grain     -> 5760.0
+      | _         -> 1.0 /. (convert_mass m2 m1)
       end
    | ShortTon ->
       begin match m2 with
-      | ShortTon -> 1.0
-      | LongTon -> 1.0 /. 1.12
+      | ShortTon  -> 1.0
+      | LongTon   -> 1.0 /. 1.12
       | MetricTon -> 0.907184740004
-      | Carat -> 4535923.7
-      | Grain -> 14.0e6
-      | _     -> 1.0 /. (convert_mass m2 m1)
+      | Carat     -> 4535923.7
+      | Grain     -> 14.0e6
+      | _         -> 1.0 /. (convert_mass m2 m1)
       end
    | LongTon ->
       begin match m2 with
-      | LongTon -> 1.0
+      | LongTon   -> 1.0
       | MetricTon -> 1.0160469088
-      | Carat -> 5080234.54401
-      | Grain -> 1.568e7
-      | _     -> 1.0 /. (convert_mass m2 m1)
+      | Carat     -> 5080234.54401
+      | Grain     -> 1.568e7
+      | _         -> 1.0 /. (convert_mass m2 m1)
       end
    | MetricTon ->
       begin match m2 with
       | MetricTon -> 1.0
-      | Carat -> 5.0e6
-      | Grain -> 15432358.3529
-      | _     -> 1.0 /. (convert_mass m2 m1)
+      | Carat     -> 5.0e6
+      | Grain     -> 15432358.3529
+      | _         -> 1.0 /. (convert_mass m2 m1)
       end
    | Carat ->
       begin match m2 with
@@ -698,145 +746,145 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
    match d1 with
    | Meter ->
       begin match d2 with
-      | Meter -> 1.0
-      | Foot  -> 1.0 /. 0.3048
-      | Inch  -> 1.0 /. 0.0254
-      | Yard  -> 1.0 /. 0.9144
-      | Mile  -> 0.000621371192
-      | Parsec -> 1.0 /. 3.085678e16
+      | Meter            -> 1.0
+      | Foot             -> 1.0 /. 0.3048
+      | Inch             -> 1.0 /. 0.0254
+      | Yard             -> 1.0 /. 0.9144
+      | Mile             -> 0.000621371192
+      | Parsec           -> 1.0 /. 3.085678e16
       | AstronomicalUnit -> 1.0 /. 1.49598e11
-      | Angstrom -> 1.0e10
-      | Furlong -> 1.0 /. 201.168
-      | Point -> 72.0 /. 0.0254
-      | Pica  -> 6.0 /. 0.0254
-      | NauticalMile -> 1.0 /. 1852.0
-      | Lightyear -> 1.05702341054e-16
+      | Angstrom         -> 1.0e10
+      | Furlong          -> 1.0 /. 201.168
+      | Point            -> 72.0 /. 0.0254
+      | Pica             -> 6.0 /. 0.0254
+      | NauticalMile     -> 1.0 /. 1852.0
+      | Lightyear        -> 1.05702341054e-16
       end
    | Foot ->
       begin match d2 with
-      | Foot -> 1.0
-      | Inch -> 12.0
-      | Yard -> 1.0 /. 3.0
-      | Mile -> 1.0 /. 5280.0
-      | Parsec -> 9.8778939e-18
+      | Foot             -> 1.0
+      | Inch             -> 12.0
+      | Yard             -> 1.0 /. 3.0
+      | Mile             -> 1.0 /. 5280.0
+      | Parsec           -> 9.8778939e-18
       | AstronomicalUnit -> 1.0 /. 4.90807087e11
-      | Angstrom -> 3.048e9
-      | Furlong -> 1.0 /. 660.0
-      | Point -> 864.0
-      | Pica -> 72.0
-      | NauticalMile -> 0.3048 /. 1852.0
-      | Lightyear -> 3.22180735531e-17
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Angstrom         -> 3.048e9
+      | Furlong          -> 1.0 /. 660.0
+      | Point            -> 864.0
+      | Pica             -> 72.0
+      | NauticalMile     -> 0.3048 /. 1852.0
+      | Lightyear        -> 3.22180735531e-17
+      | _                -> 1.0 /. (convert_distance d2 d1)
       end
    | Inch ->
       begin match d2 with
-      | Inch -> 1.0
-      | Yard -> 1.0 /. 36.0
-      | Mile -> 1.0 /. 63360.0
-      | Parsec -> 8.2315783e-19
+      | Inch             -> 1.0
+      | Yard             -> 1.0 /. 36.0
+      | Mile             -> 1.0 /. 63360.0
+      | Parsec           -> 8.2315783e-19
       | AstronomicalUnit -> 1.0 /. 5.88968504e12
-      | Angstrom -> 2.54e8
-      | Furlong -> 1.0 /. 7920.0
-      | Point -> 72.0
-      | Pica -> 6.0
-      | NauticalMile -> 0.0254 /. 1852.0
-      | Lightyear -> 2.68483946276e-18
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Angstrom         -> 2.54e8
+      | Furlong          -> 1.0 /. 7920.0
+      | Point            -> 72.0
+      | Pica             -> 6.0
+      | NauticalMile     -> 0.0254 /. 1852.0
+      | Lightyear        -> 2.68483946276e-18
+      | _                -> 1.0 /. (convert_distance d2 d1)
       end
    | Yard ->
       begin match d2 with
-      | Yard -> 1.0
-      | Mile -> 1.0 /. 1760.0
-      | Parsec -> 2.9633682e-17
+      | Yard             -> 1.0
+      | Mile             -> 1.0 /. 1760.0
+      | Parsec           -> 2.9633682e-17
       | AstronomicalUnit -> 1.0 /. 1.63602362e11
-      | Angstrom -> 9.144e9
-      | Furlong -> 1.0 /. 220.0
-      | Point -> 2592.0
-      | Pica -> 216.0
-      | NauticalMile -> 0.9144 /. 1852.0
-      | Lightyear -> 9.66542206594e-17
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Angstrom         -> 9.144e9
+      | Furlong          -> 1.0 /. 220.0
+      | Point            -> 2592.0
+      | Pica             -> 216.0
+      | NauticalMile     -> 0.9144 /. 1852.0
+      | Lightyear        -> 9.66542206594e-17
+      | _                -> 1.0 /. (convert_distance d2 d1)
       end
    | Mile ->
       begin match d2 with
-      | Mile -> 1.0
-      | Parsec -> 5.2155280e-14
+      | Mile             -> 1.0
+      | Parsec           -> 5.2155280e-14
       | AstronomicalUnit -> 1.0 /. 92955887.6
-      | Angstrom -> 1.609344e13
-      | Furlong -> 1.0 /. 0.125
-      | Point -> 4561920.0
-      | Pica -> 380160.0
-      | NauticalMile -> 1609.344 /. 1852.0
-      | Lightyear -> 1.70111428361e-13
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Angstrom         -> 1.609344e13
+      | Furlong          -> 1.0 /. 0.125
+      | Point            -> 4561920.0
+      | Pica             -> 380160.0
+      | NauticalMile     -> 1609.344 /. 1852.0
+      | Lightyear        -> 1.70111428361e-13
+      | _                -> 1.0 /. (convert_distance d2 d1)
       end
    | Parsec ->
       begin match d2 with
-      | Parsec -> 1.0
+      | Parsec           -> 1.0
       | AstronomicalUnit -> 206264.806
-      | Angstrom -> 3.08568025e-26
-      | Furlong -> 1.53388225e14
-      | Point -> 8.74681015e19
-      | Pica -> 7.28900846e18
-      | NauticalMile -> 1.66613404e13
-      | Lightyear -> 3.26163407982
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Angstrom         -> 3.08568025e-26
+      | Furlong          -> 1.53388225e14
+      | Point            -> 8.74681015e19
+      | Pica             -> 7.28900846e18
+      | NauticalMile     -> 1.66613404e13
+      | Lightyear        -> 3.26163407982
+      | _                -> 1.0 /. (convert_distance d2 d1)
       end 
    | AstronomicalUnit ->
       begin match d2 with
       | AstronomicalUnit -> 1.0
-      | Angstrom -> 1.49598e21
-      | Furlong -> 743647101.0
-      | Point -> 4.24057323e14
-      | Pica -> 3.53381102e13
-      | NauticalMile -> 80776457.9
-      | Lightyear -> 1.0 /. 63239.7139591
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Angstrom         -> 1.49598e21
+      | Furlong          -> 743647101.0
+      | Point            -> 4.24057323e14
+      | Pica             -> 3.53381102e13
+      | NauticalMile     -> 80776457.9
+      | Lightyear        -> 1.0 /. 63239.7139591
+      | _                -> 1.0 /. (convert_distance d2 d1)
       end
    | Angstrom ->
       begin match d2 with
-      | Angstrom -> 1.0
-      | Furlong -> 1.0 /. 2.01168e12
-      | Point -> 72.0 /. 2.54e8
-      | Pica -> 6.0 /. 2.54e8
+      | Angstrom     -> 1.0
+      | Furlong      -> 1.0 /. 2.01168e12
+      | Point        -> 72.0 /. 2.54e8
+      | Pica         -> 6.0 /. 2.54e8
       | NauticalMile -> 1.0 /. 1.85200e13
-      | Lightyear -> 1.05702341054e-26
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Lightyear    -> 1.05702341054e-26
+      | _            -> 1.0 /. (convert_distance d2 d1)
       end
    | Furlong ->
       begin match d2 with
-      | Furlong -> 1.0
-      | Point -> 570240.0
-      | Pica -> 47520.0
+      | Furlong      -> 1.0
+      | Point        -> 570240.0
+      | Pica         -> 47520.0
       | NauticalMile -> 660.0 *. 0.3048 /. 1852.0
-      | Lightyear -> 2.12639285e-14
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Lightyear    -> 2.12639285e-14
+      | _            -> 1.0 /. (convert_distance d2 d1)
       end
    | Point ->
       begin match d2 with
-      | Point -> 1.0
-      | Pica -> 1.0 /. 12.0
+      | Point        -> 1.0
+      | Pica         -> 1.0 /. 12.0
       | NauticalMile -> 0.0254 /. 72.0 /. 1852.0
-      | Lightyear -> 3.7289437e-20
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Lightyear    -> 3.7289437e-20
+      | _            -> 1.0 /. (convert_distance d2 d1)
       end
    | Pica ->
       begin match d2 with
-      | Pica -> 1.0
+      | Pica         -> 1.0
       | NauticalMile -> 0.0254 /. 6.0 /. 1852.0
-      | Lightyear -> 4.47473244e-19
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Lightyear    -> 4.47473244e-19
+      | _            -> 1.0 /. (convert_distance d2 d1)
       end
    | NauticalMile ->
       begin match d2 with
       | NauticalMile -> 1.0
-      | Lightyear -> 1.95760735631e-13
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | Lightyear    -> 1.95760735631e-13
+      | _            -> 1.0 /. (convert_distance d2 d1)
       end
    | Lightyear ->
       begin match d2 with
       | Lightyear -> 1.0
-      | _    -> 1.0 /. (convert_distance d2 d1)
+      | _         -> 1.0 /. (convert_distance d2 d1)
       end;;
 
 
@@ -856,7 +904,7 @@ let rec convert_time (t1 : time_fund_t) (t2 : time_fund_t) =
       | Minute -> 1.0
       | Hour   -> 1.0 /. 60.0
       | Day    -> 1.0 /. 1440.0
-      | Year -> 1.90132587845e-6
+      | Year   -> 1.90132587845e-6
       | _      -> 1.0 /. (convert_time t2 t1)
       end
    | Hour ->
@@ -868,14 +916,14 @@ let rec convert_time (t1 : time_fund_t) (t2 : time_fund_t) =
       end
    | Day ->
       begin match t2 with
-      | Day -> 1.0
+      | Day  -> 1.0
       | Year -> 2.73790926497e-3
-      | _   -> 1.0 /. (convert_time t2 t1)
+      | _    -> 1.0 /. (convert_time t2 t1)
       end
    | Year ->
       begin match t2 with
       | Year -> 1.0
-      | _   -> 1.0 /. (convert_time t2 t1)
+      | _    -> 1.0 /. (convert_time t2 t1)
       end;;
 
 (* compute conversion factors between fundamental units of current *)
@@ -898,7 +946,7 @@ let rec convert_temperature (t1 : temperature_fund_t)
    | Rankine ->
       begin match t2 with
       | Rankine -> 1.0
-      | _ -> 1.0 /. (convert_temperature t2 t1)
+      | _       -> 1.0 /. (convert_temperature t2 t1)
       end;;
 
 
@@ -954,33 +1002,33 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       end
    | Joule ->
       begin match c2 with
-      | Joule -> 1.0
-      | Erg -> 1.0e7
-      | Calorie -> 1.0 /. 4.1868
-      | Btu -> 9.47817120313e-4
+      | Joule        -> 1.0
+      | Erg          -> 1.0e7
+      | Calorie      -> 1.0 /. 4.1868
+      | Btu          -> 9.47817120313e-4
       | ElectronVolt -> 1.0 /. 1.60217733e-19
       | _ -> unit_failwith "inconsistent composite units"
       end
    | Erg ->
       begin match c2 with
-      | Erg -> 1.0
-      | Calorie -> 2.38845896627e-8
-      | Btu -> 9.47817120313e-11
+      | Erg          -> 1.0
+      | Calorie      -> 2.38845896627e-8
+      | Btu          -> 9.47817120313e-11
       | ElectronVolt -> 624150636309.0
-      | Joule -> 1.0 /. (convert_composite c2 c1)
+      | Joule        -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "inconsistent composite units"
       end
    | Calorie ->
       begin match c2 with
-      | Calorie -> 1.0
-      | Btu -> 3.96832071933e-3
+      | Calorie      -> 1.0
+      | Btu          -> 3.96832071933e-3
       | ElectronVolt -> 2.6131938841e19
       | Joule | Erg -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "inconsistent composite units"
       end
    | Btu ->
       begin match c2 with
-      | Btu -> 1.0
+      | Btu          -> 1.0
       | ElectronVolt -> 6.58513781755e21
       | Joule | Erg | Calorie -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "inconsistent composite units"
@@ -1003,46 +1051,46 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       end
    | Watt ->
       begin match c2 with
-      | Watt -> 1.0
+      | Watt       -> 1.0
       | Horsepower -> 1.3410220896e-3
       | _ -> unit_failwith "inconsistent composite units"
       end
    | Horsepower ->
       begin match c2 with
       | Horsepower -> 1.0
-      | Watt -> 1.0 /. (convert_composite c2 c1)
+      | Watt       -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "inconsistent composite units"
       end
    | Pascal ->
       begin match c2 with
-      | Pascal -> 1.0
-      | Atmosphere -> 9.86923266716e-6
-      | Bar -> 1.0e-5
+      | Pascal             -> 1.0
+      | Atmosphere         -> 9.86923266716e-6
+      | Bar                -> 1.0e-5
       | MillimetersMercury -> 7.50061682704e-3
-      | InchesMercury -> 2.9529987508e-4
+      | InchesMercury      -> 2.9529987508e-4
       | _ -> unit_failwith "inconsistent composite units"
       end
    | Atmosphere ->
       begin match c2 with
-      | Atmosphere -> 1.0
-      | Bar -> 1.01325
+      | Atmosphere         -> 1.0
+      | Bar                -> 1.01325
       | MillimetersMercury -> 760.0
-      | InchesMercury -> 29.9212598425
-      | Pascal -> 1.0 /. (convert_composite c2 c1)
+      | InchesMercury      -> 29.9212598425
+      | Pascal             -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "inconsistent composite units"
       end
    | Bar ->
       begin match c2 with
-      | Bar -> 1.0
+      | Bar                -> 1.0
       | MillimetersMercury -> 750.061682704
-      | InchesMercury -> 29.529987508
+      | InchesMercury      -> 29.529987508
       | Pascal | Atmosphere -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "inconsistent composite units"
       end
    | MillimetersMercury ->
       begin match c2 with
       | MillimetersMercury -> 1.0
-      | InchesMercury -> 3.93700787402e-2
+      | InchesMercury      -> 3.93700787402e-2
       | Pascal | Atmosphere | Bar -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "inconsistent composite units"
       end
@@ -1086,14 +1134,14 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       end
    | Weber ->
       begin match c2 with
-      | Weber -> 1.0
+      | Weber   -> 1.0
       | Maxwell -> 1.0e8
       | _ -> unit_failwith "inconsistent composite units"
       end
    | Maxwell ->
       begin match c2 with
       | Maxwell -> 1.0
-      | Weber -> 1.0 /. (convert_composite c2 c1)
+      | Weber   -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "inconsistent composite units"
       end
    | Lumen ->
@@ -1106,13 +1154,63 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | Lux -> 1.0
       | _ -> unit_failwith "inconsistent composite units"
       end
+   | FluidOunce ->
+      begin match c2 with
+      | FluidOunce -> 1.0
+      | Cup        -> 1.0 /. 8.0
+      | Pint       -> 1.0 /. 16.0
+      | Quart      -> 1.0 /. 32.0
+      | Gallon     -> 1.0 /. 128.0
+      | Liter      -> 0.0295735297
+      | _ -> unit_failwith "inconsistent composite units"
+      end
+   | Cup ->
+      begin match c2 with
+      | Cup        -> 1.0
+      | Pint       -> 1.0 /. 2.0
+      | Quart      -> 1.0 /. 4.0
+      | Gallon     -> 1.0 /. 16.0
+      | Liter      -> 0.236588237
+      | FluidOunce -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "inconsistent composite units"
+      end
+   | Pint ->
+      begin match c2 with
+      | Pint   -> 1.0
+      | Quart  -> 1.0 /. 2.0
+      | Gallon -> 1.0 /. 8.0
+      | Liter  -> 0.473176475
+      | FluidOunce | Cup -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "inconsistent composite units"
+      end
+   | Quart ->
+      begin match c2 with
+      | Quart  -> 1.0
+      | Gallon -> 1.0 /. 4.0
+      | Liter  -> 0.94635295
+      | FluidOunce | Cup | Pint -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "inconsistent composite units"
+      end
+   | Gallon ->
+      begin match c2 with
+      | Gallon -> 1.0
+      | Liter  -> 3.7854118
+      | FluidOunce | Cup | Pint | Quart -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "inconsistent composite units"
+      end
+   | Liter ->
+      begin match c2 with
+      | Liter -> 1.0
+      | FluidOunce | Cup | Pint | Quart | Gallon -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "inconsistent composite units"
+      end
+
 
    
 
 (* compute the conversion factor between two generic unit factors *)
 let convert_factor (u1 : unit_factor_power_t) (u2 : unit_factor_power_t) =
    if u1.power <> u2.power then begin
-      Printf.printf "pow1 = %f, pow2 = %f\n" u1.power u2.power;
       unit_failwith "units have inconsistent power"
    end else
       match u1.factor with
@@ -1200,6 +1298,7 @@ let group_units (ulist : unit_t) (standardize : bool) =
    and total_flux        = ref None
    and total_lumflux     = ref None
    and total_illuminance = ref None
+   and total_volume      = ref None
    and total_coeff       = ref Complex.one in
    let process_factor uc =
       let process_factor_aux total target_comp =
@@ -1289,6 +1388,8 @@ let group_units (ulist : unit_t) (standardize : bool) =
                process_factor_composite_aux total_lumflux
             | Lux ->
                process_factor_composite_aux total_illuminance
+            | FluidOunce | Cup | Pint | Quart | Gallon | Liter ->
+               process_factor_composite_aux total_volume
             end
    in
    List.iter process_factor ulist.factors;
@@ -1302,7 +1403,8 @@ let group_units (ulist : unit_t) (standardize : bool) =
    let categories = [ total_time; total_distance; total_mass; total_current; 
    total_temperature; total_amount; total_intensity; total_force; total_energy; 
    total_charge; total_freq; total_power; total_pressure; total_voltage; total_resist;
-   total_cap; total_ind; total_mag; total_flux; total_lumflux; total_illuminance ] in
+   total_cap; total_ind; total_mag; total_flux; total_lumflux; total_illuminance; 
+   total_volume ] in
    List.iter join_factors categories;
    {coeff = Complex.mul ulist.coeff !total_coeff; factors = !result_factors};; 
    

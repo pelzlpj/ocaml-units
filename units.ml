@@ -63,6 +63,14 @@ type composite_t =
    | Bar
    | MillimetersMercury
    | InchesMercury
+   | Volt
+   | Ohm
+   | Farad
+   | Henry
+   | Tesla
+   | Gauss
+   | Weber
+   | Maxwell
 
 type prefix_t =
    | NoPrefix
@@ -155,14 +163,22 @@ Hashtbl.add unit_string_table "BTU"     ( Composite   ( NoPrefix, Btu));
 Hashtbl.add unit_string_table "cal"     ( Composite   ( NoPrefix, Calorie));
 Hashtbl.add unit_string_table "eV"      ( Composite   ( NoPrefix, ElectronVolt));
 Hashtbl.add unit_string_table "C"       ( Composite   ( NoPrefix, Coulomb));
-Hashtbl.add unit_string_table "Hz"      ( Composite   ( NoPrefix, Hertz));;
-Hashtbl.add unit_string_table "W"       ( Composite   ( NoPrefix, Watt));;
-Hashtbl.add unit_string_table "hp"      ( Composite   ( NoPrefix, Horsepower));;
-Hashtbl.add unit_string_table "Pa"      ( Composite   ( NoPrefix, Pascal));;
-Hashtbl.add unit_string_table "atm"     ( Composite   ( NoPrefix, Atmosphere));;
-Hashtbl.add unit_string_table "bar"     ( Composite   ( NoPrefix, Bar));;
-Hashtbl.add unit_string_table "mmHg"    ( Composite   ( NoPrefix, MillimetersMercury));;
-Hashtbl.add unit_string_table "inHg"    ( Composite   ( NoPrefix, InchesMercury));;
+Hashtbl.add unit_string_table "Hz"      ( Composite   ( NoPrefix, Hertz));
+Hashtbl.add unit_string_table "W"       ( Composite   ( NoPrefix, Watt));
+Hashtbl.add unit_string_table "hp"      ( Composite   ( NoPrefix, Horsepower));
+Hashtbl.add unit_string_table "Pa"      ( Composite   ( NoPrefix, Pascal));
+Hashtbl.add unit_string_table "atm"     ( Composite   ( NoPrefix, Atmosphere));
+Hashtbl.add unit_string_table "bar"     ( Composite   ( NoPrefix, Bar));
+Hashtbl.add unit_string_table "mmHg"    ( Composite   ( NoPrefix, MillimetersMercury));
+Hashtbl.add unit_string_table "inHg"    ( Composite   ( NoPrefix, InchesMercury));
+Hashtbl.add unit_string_table "V"       ( Composite   ( NoPrefix, Volt));
+Hashtbl.add unit_string_table "Ohm"     ( Composite   ( NoPrefix, Ohm));
+Hashtbl.add unit_string_table "F"       ( Composite   ( NoPrefix, Farad));
+Hashtbl.add unit_string_table "H"       ( Composite   ( NoPrefix, Henry));
+Hashtbl.add unit_string_table "T"       ( Composite   ( NoPrefix, Tesla));
+Hashtbl.add unit_string_table "G"       ( Composite   ( NoPrefix, Farad));
+Hashtbl.add unit_string_table "Wb"      ( Composite   ( NoPrefix, Weber));;
+Hashtbl.add unit_string_table "Mx"      ( Composite   ( NoPrefix, Maxwell));;
 
 
 let prefix_string_table = Hashtbl.create 25;;
@@ -343,6 +359,68 @@ let expand_factor (uc : unit_factor_power_t) =
             {factor = Mass (Kilo, Gram); power = 1.0};
             {factor = Distance (NoPrefix, Meter); power = ~-. 1.0};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Volt -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 3.0};
+            {factor = Current (NoPrefix, Ampere); power = ~-. 1.0}
+         ] }
+      | Ohm -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 3.0};
+            {factor = Current (NoPrefix, Ampere); power = ~-. 2.0}
+         ] }
+      | Farad -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Current (NoPrefix, Ampere); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = 4.0};
+            {factor = Mass (Kilo, Gram); power = ~-. 1.0};
+            {factor = Distance (NoPrefix, Meter); power = ~-. 2.0}
+         ] }
+      | Henry -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
+            {factor = Current (NoPrefix, Ampere); power = ~-. 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Tesla -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0};
+            {factor = Current (NoPrefix, Ampere); power = ~-. 1.0}
+         ] }
+      | Gauss -> {
+         coeff = 0.0001 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0};
+            {factor = Current (NoPrefix, Ampere); power = ~-. 1.0}
+         ] }
+      | Weber -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0};
+            {factor = Current (NoPrefix, Ampere); power = ~-. 1.0}
+         ] }
+      | Maxwell -> {
+         coeff = 1.0e-8 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0};
+            {factor = Current (NoPrefix, Ampere); power = ~-. 1.0}
          ] }
       end
    | _ -> {
@@ -789,7 +867,51 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | InchesMercury -> 1.0
       | Pascal | Atmosphere | Bar | MillimetersMercury -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "Inconsistent composite units"
-      end;;
+      end
+   | Volt ->
+      begin match c2 with
+      | Volt -> 1.0
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Ohm ->
+      begin match c2 with
+      | Ohm -> 1.0
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Farad ->
+      begin match c2 with
+      | Farad -> 1.0
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Henry ->
+      begin match c2 with
+      | Henry -> 1.0
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Tesla ->
+      begin match c2 with
+      | Tesla -> 1.0
+      | Gauss -> 10000.0
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Gauss ->
+      begin match c2 with
+      | Gauss -> 1.0
+      | Tesla -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Weber ->
+      begin match c2 with
+      | Weber -> 1.0
+      | Maxwell -> 1.0e8
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Maxwell ->
+      begin match c2 with
+      | Maxwell -> 1.0
+      | Weber -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
 
    
 

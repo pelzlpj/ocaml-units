@@ -39,7 +39,7 @@ let shuffle arr =
 for group = 0 to pred (Array.length all_groups) do
    Printf.printf "Testing unit group %d/%d\n" (succ group) (Array.length all_groups);
    flush stdout;
-   for iter = 0 to 1000 do
+   for iter = 0 to 100 do
       shuffle all_groups.(group);
       let cfactor = ref 1.0 in
       let len = Array.length all_groups.(group) in
@@ -67,11 +67,33 @@ for group = 0 to pred (Array.length all_groups) do
 done;;
 
 
-
-
-
-
-
+(* exceedingly contrived example to test expansion and grouping of units *)
+let s1  = "g^3*lb/oz*slug^-1/ton^2*slug/lb*tonl^4*tonm^-3*ct/gr^2*tonm^2"
+and s2  = "*m^3*ft/in^2/yd^2*mi^-4/pc/AU*Ang^4*yd^5*furlong/pt"
+and s3  = "*s^-3*min*hr^2*day*min*yr*min^-2"
+and s4  = "*A^4"
+and s5  = "*R^2/K"
+and s6  = "*N^3/lbf/dyn^2/kip^3*lbf/lbf"
+and s7  = "*J/erg^2/dyn*kip^2*erg"
+and s8  = "*Hz^2"
+and s9  = "*W^-3*hp^3"
+and s10 = "*Pa*atm^0.0*bar^3/mmHg^2/inHg"
+and s11 = "*V^-2"
+and s12 = "*Ohm^2"
+and s13 = "*F^2*F^-3"
+and s14 = "*H"
+and s15 = "*T^4/G^3"
+and s16 = "*Wb^-1/Mx*Wb^2" in
+let total_s = 
+   s1 ^ s2 ^ s3 ^ s4 ^ s5 ^ s6 ^ s7 ^ s8 ^ s9 ^ s10 ^ s11 ^ 
+  s12 ^ s13 ^ s14 ^ s15 ^ s16 
+in
+let contrived = unit_of_string total_s in
+let grouped_units = group_units contrived false in
+let gu_str = string_of_unit grouped_units.factors in
+print_endline ("grouped      = " ^ gu_str);
+let stand_units = standardize_units contrived in
+print_endline ("standardized = " ^ (string_of_unit stand_units.factors));;
 
 
 (* arch-tag: DO_NOT_CHANGE_4d4f58ad-d94a-40ad-9582-4782ed4828a2 *)

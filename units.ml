@@ -58,6 +58,11 @@ type composite_t =
    | Hertz
    | Watt
    | Horsepower
+   | Pascal
+   | Atmosphere
+   | Bar
+   | MillimetersMercury
+   | InchesMercury
 
 type prefix_t =
    | NoPrefix
@@ -153,6 +158,11 @@ Hashtbl.add unit_string_table "C"       ( Composite   ( NoPrefix, Coulomb));
 Hashtbl.add unit_string_table "Hz"      ( Composite   ( NoPrefix, Hertz));;
 Hashtbl.add unit_string_table "W"       ( Composite   ( NoPrefix, Watt));;
 Hashtbl.add unit_string_table "hp"      ( Composite   ( NoPrefix, Horsepower));;
+Hashtbl.add unit_string_table "Pa"      ( Composite   ( NoPrefix, Pascal));;
+Hashtbl.add unit_string_table "atm"     ( Composite   ( NoPrefix, Atmosphere));;
+Hashtbl.add unit_string_table "bar"     ( Composite   ( NoPrefix, Bar));;
+Hashtbl.add unit_string_table "mmHg"    ( Composite   ( NoPrefix, MillimetersMercury));;
+Hashtbl.add unit_string_table "inHg"    ( Composite   ( NoPrefix, InchesMercury));;
 
 
 let prefix_string_table = Hashtbl.create 25;;
@@ -298,6 +308,41 @@ let expand_factor (uc : unit_factor_power_t) =
             {factor = Mass (NoPrefix, PoundMass); power = 1.0};
             {factor = Distance (NoPrefix, Foot); power = 2.0};
             {factor = Time (NoPrefix, Second); power = ~-. 3.0}
+         ] }
+      | Pascal -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = ~-. 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Atmosphere -> {
+         coeff = 101325.0 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = ~-. 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Bar -> {
+         coeff = 100000.0 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = ~-. 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | MillimetersMercury -> {
+         coeff = 133.322368421 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = ~-. 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | InchesMercury -> {
+         coeff = 3386.38815789 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = ~-. 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
          ] }
       end
    | _ -> {
@@ -706,6 +751,45 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       | Watt -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "Inconsistent composite units"
       end
+   | Pascal ->
+      begin match c2 with
+      | Pascal -> 1.0
+      | Atmosphere -> 9.86923266716e-6
+      | Bar -> 1.0e-5
+      | MillimetersMercury -> 7.50061682704e-3
+      | InchesMercury -> 2.9529987508e-4
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Atmosphere ->
+      begin match c2 with
+      | Atmosphere -> 1.0
+      | Bar -> 1.01325
+      | MillimetersMercury -> 760.0
+      | InchesMercury -> 29.9212598425
+      | Pascal -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Bar ->
+      begin match c2 with
+      | Bar -> 1.0
+      | MillimetersMercury -> 750.061682704
+      | InchesMercury -> 29.529987508
+      | Pascal | Atmosphere -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | MillimetersMercury ->
+      begin match c2 with
+      | MillimetersMercury -> 1.0
+      | InchesMercury -> 3.93700787402e-2
+      | Pascal | Atmosphere | Bar -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | InchesMercury ->
+      begin match c2 with
+      | InchesMercury -> 1.0
+      | Pascal | Atmosphere | Bar | MillimetersMercury -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end;;
 
    
 

@@ -46,6 +46,14 @@ type temperature_fund_t =
 
 type composite_t =
    | Newton
+   | PoundForce
+   | Dyne
+   | Kip
+   | Joule
+   | Erg
+   | Calorie
+   | Btu
+   | ElectronVolt
    | Coulomb
    | Hertz
 
@@ -131,6 +139,14 @@ Hashtbl.add unit_string_table "A"       ( Current     ( NoPrefix, Ampere));
 Hashtbl.add unit_string_table "K"       ( Temperature ( NoPrefix, Kelvin));
 Hashtbl.add unit_string_table "R"       ( Temperature ( NoPrefix, Rankine));
 Hashtbl.add unit_string_table "N"       ( Composite   ( NoPrefix, Newton));
+Hashtbl.add unit_string_table "lbf"     ( Composite   ( NoPrefix, PoundForce));
+Hashtbl.add unit_string_table "dyn"     ( Composite   ( NoPrefix, Dyne));
+Hashtbl.add unit_string_table "kip"     ( Composite   ( NoPrefix, Kip));
+Hashtbl.add unit_string_table "J"       ( Composite   ( NoPrefix, Joule));
+Hashtbl.add unit_string_table "erg"     ( Composite   ( NoPrefix, Erg));
+Hashtbl.add unit_string_table "BTU"     ( Composite   ( NoPrefix, Btu));
+Hashtbl.add unit_string_table "cal"     ( Composite   ( NoPrefix, Calorie));
+Hashtbl.add unit_string_table "eV"      ( Composite   ( NoPrefix, ElectronVolt));
 Hashtbl.add unit_string_table "C"       ( Composite   ( NoPrefix, Coulomb));
 Hashtbl.add unit_string_table "Hz"      ( Composite   ( NoPrefix, Hertz));;
 
@@ -195,6 +211,62 @@ let expand_factor (uc : unit_factor_power_t) =
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0};
             {factor = Distance (NoPrefix, Meter); power = 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | PoundForce -> {
+         coeff = 32.1740485564 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (NoPrefix, PoundMass); power = 1.0};
+            {factor = Distance (NoPrefix, Foot); power = 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Dyne -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (NoPrefix, Gram); power = 1.0};
+            {factor = Distance (Centi, Meter); power = 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Kip -> {
+         coeff = 32174.0485564 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (NoPrefix, PoundMass); power = 1.0};
+            {factor = Distance (NoPrefix, Foot); power = 1.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Joule -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Erg -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (NoPrefix, Gram); power = 1.0};
+            {factor = Distance (Centi, Meter); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Calorie -> {
+         coeff = 4.1868 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | Btu -> {
+         coeff = 1055.05585252 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0}
+         ] }
+      | ElectronVolt -> {
+         coeff = 1.60217733e-19 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0}
          ] }
       | Coulomb -> {
@@ -527,7 +599,70 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
    match c1 with
    | Newton ->
       begin match c2 with
-      | Newton -> 1.0
+      | Newton     -> 1.0
+      | PoundForce -> 0.2248089431
+      | Dyne       -> 100000.0
+      | Kip        -> 0.0002248089431
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | PoundForce ->
+      begin match c2 with
+      | PoundForce -> 1.0
+      | Newton     -> 1.0 /. (convert_composite c2 c1)
+      | Dyne       -> 444822.161526
+      | Kip        -> 0.001
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Dyne ->
+      begin match c2 with
+      | Dyne -> 1.0
+      | Kip  -> 2.248089431e-9
+      | Newton | PoundForce -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Kip ->
+      begin match c2 with
+      | Kip -> 1.0
+      | Newton | PoundForce | Dyne -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Joule ->
+      begin match c2 with
+      | Joule -> 1.0
+      | Erg -> 1.0e7
+      | Calorie -> 1.0 /. 4.1868
+      | Btu -> 9.47817120313e-4
+      | ElectronVolt -> 1.0 /. 1.60217733e-19
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Erg ->
+      begin match c2 with
+      | Erg -> 1.0
+      | Calorie -> 2.38845896627e-8
+      | Btu -> 9.47817120313e-11
+      | ElectronVolt -> 624150636309.0
+      | Joule -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Calorie ->
+      begin match c2 with
+      | Calorie -> 1.0
+      | Btu -> 3.96832071933e-3
+      | ElectronVolt -> 2.6131938841e19
+      | Joule | Erg -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Btu ->
+      begin match c2 with
+      | Btu -> 1.0
+      | ElectronVolt -> 6.58513781755e21
+      | Joule | Erg | Calorie -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | ElectronVolt ->
+      begin match c2 with
+      | ElectronVolt -> 1.0
+      | Joule | Erg | Calorie | Btu -> 1.0 /. (convert_composite c2 c1)
       | _ -> unit_failwith "Inconsistent composite units"
       end
    | Coulomb ->

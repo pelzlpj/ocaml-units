@@ -11,12 +11,22 @@ type mass_fund_t =
 type distance_fund_t =
    | Meter
    | Foot
-   | Mile;;
+   | Inch
+   | Yard
+   | Mile
+   | Parsec
+   | AstronomicalUnit
+   | Angstrom
+   | Furlong
+   | Point
+   | Pica
+   | NauticalMile;;
 
 type time_fund_t =
    | Second
    | Minute
-   | Hour;;
+   | Hour
+   | Day;;
 
 type current_fund_t = Ampere;;
    
@@ -78,19 +88,29 @@ type unit_t = {
 
 
 let unit_string_table = Hashtbl.create 50;;
-Hashtbl.add unit_string_table "g"    ( Mass        ( NoPrefix, Gram));
-Hashtbl.add unit_string_table "lb"   ( Mass        ( NoPrefix, Pound));
-Hashtbl.add unit_string_table "m"    ( Distance    ( NoPrefix, Meter));
-Hashtbl.add unit_string_table "ft"   ( Distance    ( NoPrefix, Foot));
-Hashtbl.add unit_string_table "mi"   ( Distance    ( NoPrefix, Mile));
-Hashtbl.add unit_string_table "s"    ( Time        ( NoPrefix, Second));
-Hashtbl.add unit_string_table "min"  ( Time        ( NoPrefix, Minute));
-Hashtbl.add unit_string_table "h"    ( Time        ( NoPrefix, Hour));
-Hashtbl.add unit_string_table "A"    ( Current     ( NoPrefix, Ampere));
-Hashtbl.add unit_string_table "K"    ( Temperature ( NoPrefix, Kelvin));
-Hashtbl.add unit_string_table "N"    ( Composite   ( NoPrefix, Newton));
-Hashtbl.add unit_string_table "C"    ( Composite   ( NoPrefix, Coulomb));
-Hashtbl.add unit_string_table "Hz"   ( Composite   ( NoPrefix, Hertz));;
+Hashtbl.add unit_string_table "g"       ( Mass        ( NoPrefix, Gram));
+Hashtbl.add unit_string_table "lb"      ( Mass        ( NoPrefix, Pound));
+Hashtbl.add unit_string_table "m"       ( Distance    ( NoPrefix, Meter));
+Hashtbl.add unit_string_table "ft"      ( Distance    ( NoPrefix, Foot));
+Hashtbl.add unit_string_table "in"      ( Distance    ( NoPrefix, Inch));
+Hashtbl.add unit_string_table "yd"      ( Distance    ( NoPrefix, Yard));
+Hashtbl.add unit_string_table "mi"      ( Distance    ( NoPrefix, Mile));
+Hashtbl.add unit_string_table "pc"      ( Distance    ( NoPrefix, Parsec));
+Hashtbl.add unit_string_table "AU"      ( Distance    ( NoPrefix, AstronomicalUnit));
+Hashtbl.add unit_string_table "Ang"     ( Distance    ( NoPrefix, Angstrom));
+Hashtbl.add unit_string_table "furlong" ( Distance    ( NoPrefix, Furlong));
+Hashtbl.add unit_string_table "pt"      ( Distance    ( NoPrefix, Point));
+Hashtbl.add unit_string_table "pica"    ( Distance    ( NoPrefix, Pica));
+Hashtbl.add unit_string_table "nmi"     ( Distance    ( NoPrefix, NauticalMile));
+Hashtbl.add unit_string_table "s"       ( Time        ( NoPrefix, Second));
+Hashtbl.add unit_string_table "min"     ( Time        ( NoPrefix, Minute));
+Hashtbl.add unit_string_table "hr"      ( Time        ( NoPrefix, Hour));
+Hashtbl.add unit_string_table "day"     ( Time        ( NoPrefix, Day));
+Hashtbl.add unit_string_table "A"       ( Current     ( NoPrefix, Ampere));
+Hashtbl.add unit_string_table "K"       ( Temperature ( NoPrefix, Kelvin));
+Hashtbl.add unit_string_table "N"       ( Composite   ( NoPrefix, Newton));
+Hashtbl.add unit_string_table "C"       ( Composite   ( NoPrefix, Coulomb));
+Hashtbl.add unit_string_table "Hz"      ( Composite   ( NoPrefix, Hertz));;
 
 let prefix_string_table = Hashtbl.create 25;;
 Hashtbl.add prefix_string_table "y" Yocto;
@@ -193,20 +213,129 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
    | Meter ->
       begin match d2 with
       | Meter -> 1.0
-      | Foot  -> 3.2808399
+      | Foot  -> 1.0 /. 0.3048
+      | Inch  -> 1.0 /. 0.0254
+      | Yard  -> 1.0 /. 0.9144
       | Mile  -> 0.000621371192
+      | Parsec -> 1.0 /. 3.085678e16
+      | AstronomicalUnit -> 1.0 /. 1.49598e11
+      | Angstrom -> 1.0e10
+      | Furlong -> 1.0 /. 201.168
+      | Point -> 72.0 /. 0.0254
+      | Pica  -> 6.0 /. 0.0254
+      | NauticalMile -> 1.0 /. 1852.0
       end
    | Foot ->
       begin match d2 with
       | Foot -> 1.0
+      | Inch -> 12.0
+      | Yard -> 1.0 /. 3.0
       | Mile -> 1.0 /. 5280.0
+      | Parsec -> 9.8778939e-18
+      | AstronomicalUnit -> 1.0 /. 4.90807087e11
+      | Angstrom -> 3.048e9
+      | Furlong -> 1.0 /. 660.0
+      | Point -> 864.0
+      | Pica -> 72.0
+      | NauticalMile -> 0.3048 /. 1852.0
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end
+   | Inch ->
+      begin match d2 with
+      | Inch -> 1.0
+      | Yard -> 1.0 /. 36.0
+      | Mile -> 1.0 /. 63360.0
+      | Parsec -> 8.2315783e-19
+      | AstronomicalUnit -> 1.0 /. 5.88968504e12
+      | Angstrom -> 2.54e8
+      | Furlong -> 1.0 /. 7920.0
+      | Point -> 72.0
+      | Pica -> 6.0
+      | NauticalMile -> 0.0254 /. 1852.0
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end
+   | Yard ->
+      begin match d2 with
+      | Yard -> 1.0
+      | Mile -> 1.0 /. 1760.0
+      | Parsec -> 2.9633682e-17
+      | AstronomicalUnit -> 1.0 /. 1.63602362e11
+      | Angstrom -> 9.144e9
+      | Furlong -> 1.0 /. 220.0
+      | Point -> 2592.0
+      | Pica -> 216.0
+      | NauticalMile -> 0.9144 /. 1852.0
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | Mile ->
       begin match d2 with
       | Mile -> 1.0
+      | Parsec -> 5.2155280e-14
+      | AstronomicalUnit -> 1.0 /. 92955887.6
+      | Angstrom -> 1.609344e13
+      | Furlong -> 1.0 /. 0.125
+      | Point -> 4561920.0
+      | Pica -> 380160.0
+      | NauticalMile -> 1609.344 /. 1852.0
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end
+   | Parsec ->
+      begin match d2 with
+      | Parsec -> 1.0
+      | AstronomicalUnit -> 206264.806
+      | Angstrom -> 3.08568025e-26
+      | Furlong -> 1.53388225e14
+      | Point -> 8.74681015e19
+      | Pica -> 7.28900846e18
+      | NauticalMile -> 1.66613404e13
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end 
+   | AstronomicalUnit ->
+      begin match d2 with
+      | AstronomicalUnit -> 1.0
+      | Angstrom -> 1.49598e21
+      | Furlong -> 743647101.0
+      | Point -> 4.24057323e14
+      | Pica -> 3.53381102e13
+      | NauticalMile -> 80776457.9
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end
+   | Angstrom ->
+      begin match d2 with
+      | Angstrom -> 1.0
+      | Furlong -> 1.0 /. 2.01168e12
+      | Point -> 72.0 /. 2.54e8
+      | Pica -> 6.0 /. 2.54e8
+      | NauticalMile -> 1.0 /. 1.85200e13
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end
+   | Furlong ->
+      begin match d2 with
+      | Furlong -> 1.0
+      | Point -> 570240.0
+      | Pica -> 47520.0
+      | NauticalMile -> 660.0 *. 0.3048 /. 1852.0
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end
+   | Point ->
+      begin match d2 with
+      | Point -> 1.0
+      | Pica -> 1.0 /. 12.0
+      | NauticalMile -> 0.0254 /. 72.0 /. 1852.0
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end
+   | Pica ->
+      begin match d2 with
+      | Pica -> 1.0
+      | NauticalMile -> 0.0254 /. 6.0 /. 1852.0
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end
+   | NauticalMile ->
+      begin match d2 with
+      | NauticalMile -> 1.0
       | _    -> 1.0 /. (convert_distance d2 d1)
       end;;
+
 
 (* compute conversion factors between fundamental units of time *)
 let rec convert_time (t1 : time_fund_t) (t2 : time_fund_t) =
@@ -216,17 +345,25 @@ let rec convert_time (t1 : time_fund_t) (t2 : time_fund_t) =
       | Second -> 1.0
       | Minute -> 1.0 /. 60.0
       | Hour   -> 1.0 /. 3600.0
+      | Day    -> 1.0 /. 86400.0
       end
    | Minute ->
       begin match t2 with
       | Minute -> 1.0
       | Hour   -> 1.0 /. 60.0
+      | Day    -> 1.0 /. 1440.0
       | _      -> 1.0 /. (convert_time t2 t1)
       end
    | Hour ->
       begin match t2 with
       | Hour -> 1.0
+      | Day  -> 1.0 /. 24.0
       | _    -> 1.0 /. (convert_time t2 t1)
+      end
+   | Day ->
+      begin match t2 with
+      | Day -> 1.0
+      | _   -> 1.0 /. (convert_time t2 t1)
       end;;
 
 (* compute conversion factors between fundamental units of current *)

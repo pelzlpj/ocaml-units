@@ -338,130 +338,130 @@ let expand_factor (uc : unit_factor_power_t) =
    | Composite (pre, c) ->
       begin match c with
       | Newton -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | PoundForce -> {
-         coeff = 32.1740485564 *. (prefix_value pre);
+         coeff = (32.1740485564 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (NoPrefix, PoundMass); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Foot); power = 1.0 *. uc.power};
-            {factor = Time (NoPrefix, Second); power = ~-. 2. *. uc.power}
+            {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Dyne -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (NoPrefix, Gram); power = 1.0 *. uc.power};
             {factor = Distance (Centi, Meter); power = 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Kip -> {
-         coeff = 32174.0485564 *. (prefix_value pre);
+         coeff = (32174.0485564 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (NoPrefix, PoundMass); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Foot); power = 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Joule -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Erg -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (NoPrefix, Gram); power = 1.0 *. uc.power};
             {factor = Distance (Centi, Meter); power = 2.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Calorie -> {
-         coeff = 4.1868 *. (prefix_value pre);
+         coeff = (4.1868 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Btu -> {
-         coeff = 1055.05585252 *. (prefix_value pre);
+         coeff = (1055.05585252 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | ElectronVolt -> {
-         coeff = 1.60217733e-19 *. (prefix_value pre);
+         coeff = (1.60217733e-19 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Coulomb -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Current (NoPrefix, Ampere); power = 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = 1.0 *. uc.power}
          ] }
       | Hertz -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Time (NoPrefix, Second); power = ~-. 1.0 *. uc.power}
          ] }
       | Watt -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 3.0 *. uc.power}
          ] }
       | Horsepower -> {
-         coeff = 550.0 *. 32.1740485564 *. (prefix_value pre);
+         coeff = (550.0 *. 32.1740485564 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (NoPrefix, PoundMass); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Foot); power = 2.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 3.0 *. uc.power}
          ] }
       | Pascal -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = ~-. 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Atmosphere -> {
-         coeff = 101325.0 *. (prefix_value pre);
+         coeff = (101325.0 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = ~-. 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Bar -> {
-         coeff = 100000.0 *. (prefix_value pre);
+         coeff = (100000.0 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = ~-. 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | MillimetersMercury -> {
-         coeff = 133.322368421 *. (prefix_value pre);
+         coeff = (133.322368421 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = ~-. 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | InchesMercury -> {
-         coeff = 3386.38815789 *. (prefix_value pre);
+         coeff = (3386.38815789 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = ~-. 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Volt -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
@@ -469,7 +469,7 @@ let expand_factor (uc : unit_factor_power_t) =
             {factor = Current (NoPrefix, Ampere); power = ~-. 1.0 *. uc.power}
          ] }
       | Ohm -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
@@ -477,7 +477,7 @@ let expand_factor (uc : unit_factor_power_t) =
             {factor = Current (NoPrefix, Ampere); power = ~-. 2.0 *. uc.power}
          ] }
       | Farad -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Current (NoPrefix, Ampere); power = 2.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = 4.0 *. uc.power};
@@ -485,7 +485,7 @@ let expand_factor (uc : unit_factor_power_t) =
             {factor = Distance (NoPrefix, Meter); power = ~-. 2.0 *. uc.power}
          ] }
       | Henry -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
@@ -493,21 +493,21 @@ let expand_factor (uc : unit_factor_power_t) =
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power}
          ] }
       | Tesla -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power};
             {factor = Current (NoPrefix, Ampere); power = ~-. 1.0 *. uc.power}
          ] }
       | Gauss -> {
-         coeff = 0.0001 *. (prefix_value pre);
+         coeff = (0.0001 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Time (NoPrefix, Second); power = ~-. 2.0 *. uc.power};
             {factor = Current (NoPrefix, Ampere); power = ~-. 1.0 *. uc.power}
          ] }
       | Weber -> {
-         coeff = prefix_value pre;
+         coeff = (prefix_value pre) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};
@@ -515,7 +515,7 @@ let expand_factor (uc : unit_factor_power_t) =
             {factor = Current (NoPrefix, Ampere); power = ~-. 1.0 *. uc.power}
          ] }
       | Maxwell -> {
-         coeff = 1.0e-8 *. (prefix_value pre);
+         coeff = (1.0e-8 *. (prefix_value pre)) ** uc.power;
          factors = [
             {factor = Mass (Kilo, Gram); power = 1.0 *. uc.power};
             {factor = Distance (NoPrefix, Meter); power = 2.0 *. uc.power};

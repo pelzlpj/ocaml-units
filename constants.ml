@@ -24,13 +24,11 @@
 
 open Units;;
 
-(* fix this if mol get implemented *)
-let avagadro_number              = unit_of_float_string 6.0221367e23 "g^-1";;
+let avagadro_number              = unit_of_float_string 6.0221367e23 "mol^-1";;
 let boltzmann                    = unit_of_float_string 1.380658e-23 "J/K";;
-(* fix this if mol get implemented *)
-let molar_volume                 = unit_of_float_string 22.4141 "g^-1";;
-(* fix this if mol get implemented *)
-let universal_gas                = unit_of_float_string 8.31451 "J/g/K";;
+(* HP48 drops the m^3 for the following.  Not sure why. *)
+let molar_volume                 = unit_of_float_string 0.0224141 "m^3/mol";;
+let universal_gas                = unit_of_float_string 8.31451 "J/mol/K";;
 let standard_temperature         = unit_of_float_string 273.15 "K";;
 let standard_pressure            = unit_of_float_string 101.325 "kPa";;
 let stefan_boltzmann             = unit_of_float_string 5.67051e-8 "W/m^2/K^4";;
@@ -46,8 +44,7 @@ let electron_mass                = unit_of_float_string 9.1093897e-31 "kg";;
 let proton_mass                  = unit_of_float_string 1.6726231e-17 "kg";;
 let fine_structure               = unit_of_float_string 0.00729735308 "";;
 let magnetic_flux_quantum        = unit_of_float_string 2.06783461e-15 "Wb";;
-(* fix this if mol get implemented *)
-let faraday                      = unit_of_float_string 96485.309 "C/g";;
+let faraday                      = unit_of_float_string 96485.309 "C/mol";;
 let rydberg                      = unit_of_float_string 10973731.534 "m^-1";;
 let bohr_radius                  = unit_of_float_string 0.0529177249 "nm";;
 let bohr_magneton                = unit_of_float_string 9.2740154e-24 "J/T";;

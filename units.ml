@@ -74,6 +74,8 @@ type temperature_fund_t =
    | Kelvin
    | Rankine;;
 
+type amount_fund_t = Mole;;
+
 type composite_t =
    | Newton
    | PoundForce
@@ -131,6 +133,7 @@ type distance_unit_t    = prefix_t * distance_fund_t;;
 type time_unit_t        = prefix_t * time_fund_t;;
 type current_unit_t     = prefix_t * current_fund_t;;
 type temperature_unit_t = prefix_t * temperature_fund_t;;
+type amount_unit_t      = prefix_t * amount_fund_t;;
 type composite_unit_t   = prefix_t * composite_t;;
 
 type dimension_t =
@@ -139,6 +142,7 @@ type dimension_t =
    | Time of time_unit_t
    | Current of current_unit_t
    | Temperature of temperature_unit_t
+   | Amount of amount_unit_t
    | Composite of composite_unit_t
 
 type unit_factor_power_t = {
@@ -183,6 +187,7 @@ Hashtbl.add unit_string_table "yr"      ( Time        ( NoPrefix, Year));
 Hashtbl.add unit_string_table "A"       ( Current     ( NoPrefix, Ampere));
 Hashtbl.add unit_string_table "K"       ( Temperature ( NoPrefix, Kelvin));
 Hashtbl.add unit_string_table "R"       ( Temperature ( NoPrefix, Rankine));
+Hashtbl.add unit_string_table "mol"     ( Amount      ( NoPrefix, Mole));
 Hashtbl.add unit_string_table "N"       ( Composite   ( NoPrefix, Newton));
 Hashtbl.add unit_string_table "lbf"     ( Composite   ( NoPrefix, PoundForce));
 Hashtbl.add unit_string_table "dyn"     ( Composite   ( NoPrefix, Dyne));
@@ -329,6 +334,10 @@ let string_of_temperature (t : temperature_fund_t) =
    match t with
    | Kelvin  -> "K"
    | Rankine -> "R";;
+
+let string_of_amount (a : amount_fund_t) =
+   match a with
+   | Mole -> "mol";;
 
 let string_of_composite (c : composite_t) = 
    match c with
@@ -866,6 +875,16 @@ let rec convert_temperature (t1 : temperature_fund_t)
       | _ -> 1.0 /. (convert_temperature t2 t1)
       end;;
 
+
+(* compute conversion factors between fundamental units of 'amount' *)
+let rec convert_amount (a1 : amount_fund_t) (a2 : amount_fund_t) =
+   match a1 with
+   | Mole ->
+      begin match a2 with
+      | Mole -> 1.0
+      end;;
+
+
 (* compute conversion factors between composite units *)
 let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
    match c1 with
@@ -1087,6 +1106,13 @@ let convert_factor (u1 : unit_factor_power_t) (u2 : unit_factor_power_t) =
             (coeff *. convert_temperature t1 t2) ** u1.power
          | _ -> unit_failwith "inconsistent units"
          end
+      | Amount (pre1, a1) ->
+         begin match u2.factor with
+         | Amount (pre2, a2) ->
+            let coeff = (prefix_value pre1) /. (prefix_value pre2) in
+            (coeff *. convert_amount a1 a2) ** u1.power
+         | _ -> unit_failwith "inconsistent units"
+         end
       | Composite (pre1, c1) ->
          begin match u2.factor with
          | Composite (pre2, c2) ->
@@ -1106,6 +1132,7 @@ let group_units (ulist : unit_t) (standardize : bool) =
    and total_time        = ref None
    and total_current     = ref None
    and total_temperature = ref None
+   and total_amount      = ref None
    and total_force       = ref None
    and total_energy      = ref None
    and total_charge      = ref None
@@ -1170,6 +1197,8 @@ let group_units (ulist : unit_t) (standardize : bool) =
          process_factor_aux total_current (Current (NoPrefix, Ampere))
       | Temperature t ->
          process_factor_aux total_temperature (Temperature (NoPrefix, Kelvin))
+      | Amount a ->
+         process_factor_aux total_amount (Amount (NoPrefix, Mole))
       | Composite (pre, co) ->
          if standardize then
             unit_failwith "Encountered Composite argument to group_units() with standardized = true"
@@ -1209,8 +1238,8 @@ let group_units (ulist : unit_t) (standardize : bool) =
       | Some f -> result_factors := f :: !result_factors
       end
    in
-   let categories = [ total_time; total_distance; total_mass;
-   total_current; total_temperature; total_force; total_energy; total_charge; 
+   let categories = [ total_time; total_distance; total_mass; total_current; 
+   total_temperature; total_amount; total_force; total_energy; total_charge; 
    total_freq; total_power; total_pressure; total_voltage; total_resist;
    total_cap; total_ind; total_mag; total_flux ] in
    List.iter join_factors categories;
@@ -1320,6 +1349,7 @@ let dimension_of_string ss =
                | Time (_, t)        -> Time (pre, t)
                | Current (_, c)     -> Current (pre, c)
                | Temperature (_, t) -> Temperature (pre, t)
+               | Amount (_, a)      -> Amount (pre, a)
                | Composite (_, c)   -> Composite (pre, c)
                end
             with Not_found ->
@@ -1422,6 +1452,8 @@ let string_of_unit (uu : unit_factor_power_t list) =
                   (string_of_prefix pre) ^ (string_of_current c)
                | Temperature (pre, t) ->
                   (string_of_prefix pre) ^ (string_of_temperature t)
+               | Amount (pre, a) ->
+                  (string_of_prefix pre) ^ (string_of_amount a)
                | Composite (pre, c) ->
                   (string_of_prefix pre) ^ (string_of_composite c)
                end

@@ -24,11 +24,39 @@
 
 open Units;;
 
-let electron_charge      = unit_of_float_string 1.60217653e-19 "C"
-let electron_mass        = unit_of_float_string 9.1093826e-31 "kg"
-let gravitation          = unit_of_float_string 6.6742e-11 "m^3*kg^-1*s^-2"
-let acceleration_gravity = unit_of_float_string 9.80665 "m*s^-2"
-
+(* fix this if mol get implemented *)
+let avagadro_number              = unit_of_float_string 6.0221367e23 "g^-1";;
+let boltzmann                    = unit_of_float_string 1.380658e-23 "J/K";;
+(* fix this if mol get implemented *)
+let molar_volume                 = unit_of_float_string 22.4141 "g^-1";;
+(* fix this if mol get implemented *)
+let universal_gas                = unit_of_float_string 8.31451 "J/g/K";;
+let standard_temperature         = unit_of_float_string 273.15 "K";;
+let standard_pressure            = unit_of_float_string 101.325 "kPa";;
+let stefan_boltzmann             = unit_of_float_string 5.67051e-8 "W/m^2/K^4";;
+let light_speed                  = unit_of_float_string 299792458 "m/s";;
+let permittivity                 = unit_of_float_string 8.85418781761e-12 "F/m";;
+let permeability                 = unit_of_float_string 1.25663706144e-6 "H/m";;
+let acceleration_gravity         = unit_of_float_string 9.80665 "m/s^2";;
+let newton_gravitation           = unit_of_float_string 6.67259e-11 "m^3/s^2/kg";;
+let planck_h                     = unit_of_float_string 6.6260755e-34 "J*s";;
+let dirac_hbar                   = unit_of_float_string 1.05457266e-34 "J*s";;
+let electron_charge              = unit_of_float_string 1.60217733e-19 "C";;
+let electron_mass                = unit_of_float_string 9.1093897e-31 "kg";;
+let proton_mass                  = unit_of_float_string 1.6726231e-17 "kg";;
+let fine_structure               = unit_of_float_string 0.00729735308 "";;
+let magnetic_flux_quantum        = unit_of_float_string 2.06783461e-15 "Wb";;
+(* fix this if mol get implemented *)
+let faraday                      = unit_of_float_string 96485.309 "C/g";;
+let rydberg                      = unit_of_float_string 10973731.534 "m^-1";;
+let bohr_radius                  = unit_of_float_string 0.0529177249 "nm";;
+let bohr_magneton                = unit_of_float_string 9.2740154e-24 "J/T";;
+let nuclear_magneton             = unit_of_float_string 5.0507866e-27 "J/T";;
+let photon_wavelength            = unit_of_float_string 1239.8425 "nm";;
+let photon_frequency             = unit_of_float_string 2.4179883e14 "Hz";;
+let compton_wavelength           = unit_of_float_string 0.00242631058 "nm";;
+let wien                         = unit_of_float_string 0.002897756 "m*K";;
+let dielectric                   = unit_of_float_string 11.9 "";;
 
 
 

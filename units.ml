@@ -28,13 +28,15 @@ type distance_fund_t =
    | Furlong
    | Point
    | Pica
-   | NauticalMile;;
+   | NauticalMile
+   | Lightyear;;
 
 type time_fund_t =
    | Second
    | Minute
    | Hour
-   | Day;;
+   | Day
+   | Year;;
 
 type current_fund_t = Ampere;;
    
@@ -119,10 +121,12 @@ Hashtbl.add unit_string_table "furlong" ( Distance    ( NoPrefix, Furlong));
 Hashtbl.add unit_string_table "pt"      ( Distance    ( NoPrefix, Point));
 Hashtbl.add unit_string_table "pica"    ( Distance    ( NoPrefix, Pica));
 Hashtbl.add unit_string_table "nmi"     ( Distance    ( NoPrefix, NauticalMile));
+Hashtbl.add unit_string_table "lyr"     ( Distance    ( NoPrefix, Lightyear));
 Hashtbl.add unit_string_table "s"       ( Time        ( NoPrefix, Second));
 Hashtbl.add unit_string_table "min"     ( Time        ( NoPrefix, Minute));
 Hashtbl.add unit_string_table "hr"      ( Time        ( NoPrefix, Hour));
 Hashtbl.add unit_string_table "day"     ( Time        ( NoPrefix, Day));
+Hashtbl.add unit_string_table "yr"      ( Time        ( NoPrefix, Year));
 Hashtbl.add unit_string_table "A"       ( Current     ( NoPrefix, Ampere));
 Hashtbl.add unit_string_table "K"       ( Temperature ( NoPrefix, Kelvin));
 Hashtbl.add unit_string_table "R"       ( Temperature ( NoPrefix, Rankine));
@@ -327,6 +331,7 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 72.0 /. 0.0254
       | Pica  -> 6.0 /. 0.0254
       | NauticalMile -> 1.0 /. 1852.0
+      | Lightyear -> 1.05702341054e-16
       end
    | Foot ->
       begin match d2 with
@@ -341,6 +346,7 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 864.0
       | Pica -> 72.0
       | NauticalMile -> 0.3048 /. 1852.0
+      | Lightyear -> 3.22180735531e-17
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | Inch ->
@@ -355,6 +361,7 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 72.0
       | Pica -> 6.0
       | NauticalMile -> 0.0254 /. 1852.0
+      | Lightyear -> 2.68483946276e-18
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | Yard ->
@@ -368,6 +375,7 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 2592.0
       | Pica -> 216.0
       | NauticalMile -> 0.9144 /. 1852.0
+      | Lightyear -> 9.66542206594e-17
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | Mile ->
@@ -380,6 +388,7 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 4561920.0
       | Pica -> 380160.0
       | NauticalMile -> 1609.344 /. 1852.0
+      | Lightyear -> 1.70111428361e-13
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | Parsec ->
@@ -391,6 +400,7 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 8.74681015e19
       | Pica -> 7.28900846e18
       | NauticalMile -> 1.66613404e13
+      | Lightyear -> 3.26163407982
       | _    -> 1.0 /. (convert_distance d2 d1)
       end 
    | AstronomicalUnit ->
@@ -401,6 +411,7 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 4.24057323e14
       | Pica -> 3.53381102e13
       | NauticalMile -> 80776457.9
+      | Lightyear -> 1.0 /. 63239.7139591
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | Angstrom ->
@@ -410,6 +421,7 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 72.0 /. 2.54e8
       | Pica -> 6.0 /. 2.54e8
       | NauticalMile -> 1.0 /. 1.85200e13
+      | Lightyear -> 1.05702341054e-26
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | Furlong ->
@@ -418,6 +430,7 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 570240.0
       | Pica -> 47520.0
       | NauticalMile -> 660.0 *. 0.3048 /. 1852.0
+      | Lightyear -> 2.12639285e-14
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | Point ->
@@ -425,17 +438,25 @@ let rec convert_distance (d1 : distance_fund_t) (d2 : distance_fund_t) =
       | Point -> 1.0
       | Pica -> 1.0 /. 12.0
       | NauticalMile -> 0.0254 /. 72.0 /. 1852.0
+      | Lightyear -> 3.7289437e-20
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | Pica ->
       begin match d2 with
       | Pica -> 1.0
       | NauticalMile -> 0.0254 /. 6.0 /. 1852.0
+      | Lightyear -> 4.47473244e-19
       | _    -> 1.0 /. (convert_distance d2 d1)
       end
    | NauticalMile ->
       begin match d2 with
       | NauticalMile -> 1.0
+      | Lightyear -> 1.95760735631e-13
+      | _    -> 1.0 /. (convert_distance d2 d1)
+      end
+   | Lightyear ->
+      begin match d2 with
+      | Lightyear -> 1.0
       | _    -> 1.0 /. (convert_distance d2 d1)
       end;;
 
@@ -449,23 +470,32 @@ let rec convert_time (t1 : time_fund_t) (t2 : time_fund_t) =
       | Minute -> 1.0 /. 60.0
       | Hour   -> 1.0 /. 3600.0
       | Day    -> 1.0 /. 86400.0
+      | Year   -> 3.16887646408e-8
       end
    | Minute ->
       begin match t2 with
       | Minute -> 1.0
       | Hour   -> 1.0 /. 60.0
       | Day    -> 1.0 /. 1440.0
+      | Year -> 1.90132587845e-6
       | _      -> 1.0 /. (convert_time t2 t1)
       end
    | Hour ->
       begin match t2 with
       | Hour -> 1.0
       | Day  -> 1.0 /. 24.0
+      | Year -> 1.14079552707e-4
       | _    -> 1.0 /. (convert_time t2 t1)
       end
    | Day ->
       begin match t2 with
       | Day -> 1.0
+      | Year -> 2.73790926497e-3
+      | _   -> 1.0 /. (convert_time t2 t1)
+      end
+   | Year ->
+      begin match t2 with
+      | Year -> 1.0
       | _   -> 1.0 /. (convert_time t2 t1)
       end;;
 

@@ -1332,18 +1332,11 @@ let unit_of_string ss =
          in
          unit_failwith err_msg
    in
-   let rec process_div_terms dlist result =
-      match dlist with
-      | [] ->
-         result
-      | head :: tail ->
-         let comp = factor_of_term head in
-         let new_result = 
-            {factor = comp.factor; power = ~-. (comp.power)} :: 
-            result
-         in
-         process_div_terms tail new_result
-   in
+   let flip_powers ss = 
+      let comp = factor_of_term ss in {
+      factor = comp.factor;
+      power  = ~-. (comp.power)
+   } in
    let rec process_mult_terms mlist result = 
       match mlist with
       | [] ->
@@ -1356,14 +1349,14 @@ let unit_of_string ss =
             else if List.length div_list = 1 && String.contains head '/' then
                unit_failwith "Illegal unit division syntax"
             else
-               factor_of_term (List.hd div_list) :: (process_div_terms
-               (List.tl div_list) [])
+               factor_of_term (List.hd div_list) :: (List.map flip_powers
+               (List.tl div_list))
          in
-         process_mult_terms tail (div_list_comp @ result)
+         process_mult_terms tail (List.rev_append div_list_comp result)
    in
    let mult_terms = Str.split mult_regex ss in
-   let factors_rev = process_mult_terms mult_terms [] in
-   {coeff = Complex.one; factors = List.rev factors_rev};;
+   let fact_rev = process_mult_terms mult_terms [] in
+   {coeff = Complex.one; factors = List.rev fact_rev};;
             
 
 let string_of_unit (uu : unit_factor_power_t list) =

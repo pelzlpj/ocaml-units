@@ -1071,13 +1071,24 @@ let convert_factor (u1 : unit_factor_power_t) (u2 : unit_factor_power_t) =
  * s*min -> 60 s^2.  If 'standardize' = true, then units of mass, distance,
  * etc. will be converted to fundamental units (kg, m, s, etc.). *)
 let group_units (ulist : unit_t) (standardize : bool) =
-   let total_mass : unit_factor_power_t option ref        = ref None
-   and total_distance : unit_factor_power_t option ref    = ref None
-   and total_time : unit_factor_power_t option ref        = ref None
-   and total_current : unit_factor_power_t option ref     = ref None
-   and total_temperature : unit_factor_power_t option ref = ref None
-   and total_composite : unit_factor_power_t option ref   = ref None
-   and total_coeff                                        = ref 1.0 in
+   let total_mass        = ref None
+   and total_distance    = ref None
+   and total_time        = ref None
+   and total_current     = ref None
+   and total_temperature = ref None
+   and total_force       = ref None
+   and total_energy      = ref None
+   and total_charge      = ref None
+   and total_freq        = ref None
+   and total_power       = ref None
+   and total_pressure    = ref None
+   and total_voltage     = ref None
+   and total_resist      = ref None
+   and total_cap         = ref None
+   and total_ind         = ref None
+   and total_mag         = ref None
+   and total_flux        = ref None
+   and total_coeff       = ref 1.0 in
    let process_factor uc =
       let process_factor_aux total target_comp =
          begin match !total with
@@ -1093,14 +1104,29 @@ let group_units (ulist : unit_t) (standardize : bool) =
             end else
                total := Some uc
          | Some tot ->
-               let conversion = convert_factor uc
-               {factor = tot.factor; power = uc.power} in
-               total_coeff := !total_coeff *. conversion;
-               let p = tot.power +. uc.power in
-               if p = 0.0 then
-                  total := None
-               else
-                  total := Some {factor = tot.factor; power = p}
+            let conversion = convert_factor uc
+            {factor = tot.factor; power = uc.power} in
+            total_coeff := !total_coeff *. conversion;
+            let p = tot.power +. uc.power in
+            if p = 0.0 then
+               total := None
+            else
+               total := Some {factor = tot.factor; power = p}
+         end
+      in
+      let process_factor_composite_aux total =
+         begin match !total with
+         | None ->
+            total := Some uc
+         | Some t ->
+            let conversion = convert_factor uc
+            {factor = t.factor; power = uc.power} in
+            total_coeff := !total_coeff *. conversion;
+            let p = t.power +. uc.power in
+            if p = 0.0 then
+               total := None
+            else
+               total := Some {factor = t.factor; power = p}
          end
       in
       match uc.factor with
@@ -1114,46 +1140,50 @@ let group_units (ulist : unit_t) (standardize : bool) =
          process_factor_aux total_current (Current (NoPrefix, Ampere))
       | Temperature t ->
          process_factor_aux total_temperature (Temperature (NoPrefix, Kelvin))
-      | Composite c ->
+      | Composite (pre, co) ->
          if standardize then
             unit_failwith "Encountered Composite argument to group_units() with standardized = true"
          else 
-            begin match !total_composite with
-            | None ->
-               total_composite := Some uc
-            | Some tc ->
-               let conversion = convert_factor uc
-               {factor = tc.factor; power = uc.power} in
-               total_coeff := !total_coeff *. conversion;
-               let p = tc.power +. uc.power in
-               if p = 0.0 then
-                  total_composite := None
-               else
-                  total_composite := Some {factor = tc.factor; power = p}
+            begin match co with
+            | Newton | PoundForce | Dyne | Kip ->
+               process_factor_composite_aux total_force
+            | Joule | Erg | Calorie | Btu | ElectronVolt ->
+               process_factor_composite_aux total_energy
+            | Coulomb ->
+               process_factor_composite_aux total_charge
+            | Hertz ->
+               process_factor_composite_aux total_freq
+            | Watt | Horsepower ->
+               process_factor_composite_aux total_power
+            | Pascal | Atmosphere | Bar | MillimetersMercury | InchesMercury ->
+               process_factor_composite_aux total_pressure
+            | Volt ->
+               process_factor_composite_aux total_voltage
+            | Ohm ->
+               process_factor_composite_aux total_resist
+            | Farad ->
+               process_factor_composite_aux total_cap
+            | Henry ->
+               process_factor_composite_aux total_ind
+            | Tesla | Gauss ->
+               process_factor_composite_aux total_mag
+            | Weber | Maxwell ->
+               process_factor_composite_aux total_flux
             end
    in
    List.iter process_factor ulist.factors;
    let result_factors = ref [] in
-   begin match !total_time with
-   | None   -> ()
-   | Some t -> result_factors := t :: !result_factors
-   end;
-   begin match !total_distance with
-   | None -> ()
-   | Some d -> result_factors := d :: !result_factors
-   end;
-   begin match !total_mass with
-   | None -> ()
-   | Some m -> result_factors := m :: !result_factors
-   end;
-   begin match !total_current with
-   | None -> ()
-   | Some c -> result_factors := c :: !result_factors
-   end;
-   begin match !total_composite with
-   | None -> ()
-   | Some c -> result_factors := c :: !result_factors
-   end;
+   let join_factors category =
+      begin match !category with
+      | None   -> ()
+      | Some f -> result_factors := f :: !result_factors
+      end
+   in
+   let categories = [ total_time; total_distance; total_mass;
+   total_current; total_temperature; total_force; total_energy; total_charge; 
+   total_freq; total_power; total_pressure; total_voltage; total_resist;
+   total_cap; total_ind; total_mag; total_flux ] in
+   List.iter join_factors categories;
    {coeff = ulist.coeff *. !total_coeff; factors = !result_factors};; 
    
 

@@ -69,12 +69,13 @@ done;;
 
 (* exceedingly contrived example to test expansion and grouping of units *)
 let s1  = "g^3*lb/oz*slug^-1/ton^2*slug/lb*tonl^4*tonm^-3*ct/gr^2*tonm^2"
-and s2  = "*m^3*ft/in^2/yd^2*mi^-4/pc/AU*Ang^4*yd^5*furlong/pt"
+(* and s2  = "*m^3*ft/in^2/yd^2*mi^-4/pc/AU*Ang^4*yd^5*furlong/pt" *)
+and s2  = "*m^3*ft/in^2*mi^-4*yd^-2/AU/pc*Ang^4*furlong*yd^5/pt"
 and s3  = "*s^-3*min*hr^2*day*min*yr*min^-2"
 and s4  = "*A^4"
 and s5  = "*R^2/K"
-and s6  = "*N^3/lbf/dyn^2/kip^3*lbf/lbf"
-and s7  = "*J/erg^2/dyn*kip^2*erg"
+and s6  = "*N^3/lbf/dyn^2/kip^3*lbf/lbf^2*kip^3"
+and s7  = "*J/erg^2/BTU^3*erg*cal^3*eV*eV"
 and s8  = "*Hz^2"
 and s9  = "*W^-3*hp^3"
 and s10 = "*Pa*atm^0.0*bar^3/mmHg^2/inHg"
@@ -91,9 +92,12 @@ in
 let contrived = unit_of_string total_s in
 let grouped_units = group_units contrived false in
 let gu_str = string_of_unit grouped_units.factors in
-print_endline ("grouped      = " ^ gu_str);
+print_endline ("grouped      = " ^ (string_of_float grouped_units.coeff) ^ gu_str);
+print_endline ("expected     = 1.76804093547e-15G*H*F^-1*Ohm^2*V^-2*Pa*Hz^2*eV^2*lbf^-1*K*A^4*tonm^2*m^3*day");
 let stand_units = standardize_units contrived in
-print_endline ("standardized = " ^ (string_of_unit stand_units.factors));;
+print_endline ("standardized = " ^ (string_of_float stand_units.coeff) ^ 
+(string_of_unit stand_units.factors));
+print_endline ("expected     = 8.81537531531e-47K*A^-3*kg^7*m^9*s^-13");;
 
 
 (* arch-tag: DO_NOT_CHANGE_4d4f58ad-d94a-40ad-9582-4782ed4828a2 *)

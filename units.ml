@@ -1220,6 +1220,37 @@ let conversion_factor (u1 : unit_t) (u2 : unit_t) =
       unit_failwith "Inconsistent units.";;
 
 
+(* multiply two units *)
+let mult (u1 : unit_t) (u2 : unit_t) = {
+   coeff   = u1.coeff *. u2.coeff;
+   factors = u1.factors @ u2.factors
+};;
+
+
+(* divide one unit by another *)
+let div (u1 : unit_t) (u2 : unit_t) =
+   let flip_powers f = {
+      factor = f.factor;
+      power  = ~-. (f.power)
+   } in
+   let divisors = List.map flip_powers u2.factors in {
+      coeff   = u1.coeff /. u2.coeff;
+      factors = u1.factors @ divisors
+   };;
+
+
+(* raise a unit to a power *)
+let pow (u : unit_t) (p : float) = 
+   let update_powers f = {
+      factor = f.factor;
+      power  = f.power *. p
+   } in {
+      coeff   = u.coeff ** p;
+      factors = List.map update_powers u.factors
+   };;
+
+
+
 let is_prefix pre word =
    if String.length word >= String.length pre then
       pre = (String.sub word 0 (String.length pre))
@@ -1375,7 +1406,12 @@ let string_of_unit (uu : unit_factor_power_t list) =
    string_of_unit_aux uu "";;
 
    
-
+(* create a unit with a specified coefficient *)
+let unit_of_float_string ff ss =
+   let u = unit_of_string ss in {
+      coeff   = u.coeff *. ff;
+      factors = u.factors
+   };;
 
 
 

@@ -56,7 +56,7 @@ let photon_wavelength            = unit_of_float_string 1239.8425 "nm";;
 let photon_frequency             = unit_of_float_string 2.4179883e14 "Hz";;
 let compton_wavelength           = unit_of_float_string 0.00242631058 "nm";;
 let wien                         = unit_of_float_string 0.002897756 "m*K";;
-let dielectric                   = unit_of_float_string 11.9 "";;
+let dielectric_silicon           = unit_of_float_string 11.9 "";;
 
 
 

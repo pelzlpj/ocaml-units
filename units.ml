@@ -1330,16 +1330,32 @@ let standardize_units (u : unit_t) =
    group_units (expand_units u) true;;
 
 
-(* compute the conversion factor between two units *)
+(* compute the conversion factor between two units
+ * Algorithm:
+ * 1) try grouping units and converting between groups
+ *    (which will minimize rounding artifacts)
+ * 2) if (1) fails, then standardize the units and
+ *    try again (this may cause rounding, but it's
+ *    the most robust method)
+ * 3) if (2) fails, raise exception *)
 let conversion_factor (u1 : unit_t) (u2 : unit_t) =
-   let s1 = standardize_units u1
-   and s2 = standardize_units u2 in
-   if s1.factors = s2.factors then
-      Complex.div s1.coeff s2.coeff
-   else
-      unit_failwith "inconsistent units";;
+   let g1 = group_units u1 false
+   and g2 = group_units u2 false in
+   let accumulate_coeff cc el1 el2 =
+      cc *. (convert_factor el1 el2)
+   in
+   try
+      let cf = List.fold_left2 accumulate_coeff 1.0 g1.factors g2.factors in
+      Complex.mul (c_of_f cf) (Complex.div g1.coeff g2.coeff)
+   with _ ->
+      let s1 = standardize_units u1
+      and s2 = standardize_units u2 in
+      if s1.factors = s2.factors then
+         Complex.div s1.coeff s2.coeff
+      else
+         unit_failwith "inconsistent units";;
 
-
+      
 (* compute the conversion factor between two units,
  * ignoring the magnitude of the target unit coefficient. *)
 let conversion_factor_unitary (u1 : unit_t) (u2 : unit_t) =

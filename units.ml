@@ -1227,6 +1227,16 @@ let conversion_factor (u1 : unit_t) (u2 : unit_t) =
       unit_failwith "Inconsistent units.";;
 
 
+(* compute the conversion factor between two units,
+ * ignoring the magnitude of the target unit coefficient. *)
+let conversion_factor_unitary (u1 : unit_t) (u2 : unit_t) =
+   let unitary_u2 = {
+      coeff = Complex.one;
+      factors = u2.factors
+   } in
+   conversion_factor u1 unitary_u2
+
+
 (* multiply two units *)
 let mult (u1 : unit_t) (u2 : unit_t) = {
    coeff   = Complex.mul u1.coeff u2.coeff;

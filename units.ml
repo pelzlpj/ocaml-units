@@ -1429,6 +1429,11 @@ let unit_of_float_string ff ss =
    };;
 
 
+let unit_of_cpx_string cc ss =
+   let u = unit_of_string ss in {
+      coeff   = Complex.mul u.coeff cc;
+      factors = u.factors
+   };;
 
 
 

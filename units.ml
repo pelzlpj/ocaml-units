@@ -56,6 +56,8 @@ type composite_t =
    | ElectronVolt
    | Coulomb
    | Hertz
+   | Watt
+   | Horsepower
 
 type prefix_t =
    | NoPrefix
@@ -149,6 +151,9 @@ Hashtbl.add unit_string_table "cal"     ( Composite   ( NoPrefix, Calorie));
 Hashtbl.add unit_string_table "eV"      ( Composite   ( NoPrefix, ElectronVolt));
 Hashtbl.add unit_string_table "C"       ( Composite   ( NoPrefix, Coulomb));
 Hashtbl.add unit_string_table "Hz"      ( Composite   ( NoPrefix, Hertz));;
+Hashtbl.add unit_string_table "W"       ( Composite   ( NoPrefix, Watt));;
+Hashtbl.add unit_string_table "hp"      ( Composite   ( NoPrefix, Horsepower));;
+
 
 let prefix_string_table = Hashtbl.create 25;;
 Hashtbl.add prefix_string_table "y" Yocto;
@@ -279,6 +284,20 @@ let expand_factor (uc : unit_factor_power_t) =
          coeff = prefix_value pre;
          factors = [
             {factor = Time (NoPrefix, Second); power = ~-. 1.0}
+         ] }
+      | Watt -> {
+         coeff = prefix_value pre;
+         factors = [
+            {factor = Mass (Kilo, Gram); power = 1.0};
+            {factor = Distance (NoPrefix, Meter); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 3.0}
+         ] }
+      | Horsepower -> {
+         coeff = 550.0 *. 32.1740485564 *. (prefix_value pre);
+         factors = [
+            {factor = Mass (NoPrefix, PoundMass); power = 1.0};
+            {factor = Distance (NoPrefix, Foot); power = 2.0};
+            {factor = Time (NoPrefix, Second); power = ~-. 3.0}
          ] }
       end
    | _ -> {
@@ -674,7 +693,20 @@ let rec convert_composite (c1 : composite_t) (c2 : composite_t) =
       begin match c2 with
       | Hertz -> 1.0
       | _ -> unit_failwith "Inconsistent composite units"
-      end;;
+      end
+   | Watt ->
+      begin match c2 with
+      | Watt -> 1.0
+      | Horsepower -> 1.3410220896e-3
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+   | Horsepower ->
+      begin match c2 with
+      | Horsepower -> 1.0
+      | Watt -> 1.0 /. (convert_composite c2 c1)
+      | _ -> unit_failwith "Inconsistent composite units"
+      end
+
    
 
 (* compute the conversion factor between two generic unit factors *)

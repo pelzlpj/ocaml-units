@@ -1,13 +1,22 @@
 all: units.cmo constants.cmo
 
+test: test.ml units.cmx
+	ocamlopt -o test str.cmxa units.cmx test.ml
+
 units.cmo: units.ml
 	ocamlc -c units.ml
+
+units.cmx: units.ml
+	ocamlopt -c units.ml
 
 constants.cmo: constants.ml
 	ocamlc -c constants.ml
 
+constants.cmx: constants.ml
+	ocamlopt -c constants.ml
+
 clean:
-	rm -f *.cmo *.cmi *.mli
+	rm -f *.cmo *.cmi *.mli test
 
 
 

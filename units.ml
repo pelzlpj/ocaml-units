@@ -1,8 +1,8 @@
 
 
-exception Unit_error of string;;
+exception Units_error of string;;
 let unit_failwith ss =
-   raise (Unit_error ss);;
+   raise (Units_error ss);;
 
 type mass_fund_t = 
    | Gram
@@ -176,7 +176,7 @@ Hashtbl.add unit_string_table "Ohm"     ( Composite   ( NoPrefix, Ohm));
 Hashtbl.add unit_string_table "F"       ( Composite   ( NoPrefix, Farad));
 Hashtbl.add unit_string_table "H"       ( Composite   ( NoPrefix, Henry));
 Hashtbl.add unit_string_table "T"       ( Composite   ( NoPrefix, Tesla));
-Hashtbl.add unit_string_table "G"       ( Composite   ( NoPrefix, Farad));
+Hashtbl.add unit_string_table "G"       ( Composite   ( NoPrefix, Gauss));
 Hashtbl.add unit_string_table "Wb"      ( Composite   ( NoPrefix, Weber));;
 Hashtbl.add unit_string_table "Mx"      ( Composite   ( NoPrefix, Maxwell));;
 
@@ -1226,7 +1226,7 @@ let dimension_of_string ss =
    with Not_found ->
       try
          test_prefixes prefix_list
-      with Unit_error _ ->
+      with Units_error _ ->
          let err_str = Printf.sprintf "Unrecognized unit \"%s\"" ss in
          unit_failwith err_str;;
 

@@ -41,13 +41,13 @@ for group = 0 to pred (Array.length all_groups) do
    flush stdout;
    for iter = 0 to 100 do
       shuffle all_groups.(group);
-      let cfactor = ref 1.0 in
+      let cfactor = ref Complex.one in
       let len = Array.length all_groups.(group) in
       begin try
          for i = 0 to pred len do
             let u1 = unit_of_string all_groups.(group).(i)
             and u2 = unit_of_string all_groups.(group).((i + 1) mod len) in
-            cfactor := !cfactor *. (conversion_factor u1 u2)
+            cfactor := Complex.mul !cfactor (conversion_factor u1 u2)
          done
       with Units_error s ->
          Printf.printf "Caught Units exception: \"%s\"\n" s;
@@ -55,9 +55,9 @@ for group = 0 to pred (Array.length all_groups) do
          Array.iter print_endline all_groups.(group);
          failwith s
       end;
-      if abs_float (!cfactor -. 1.0) > 1e-15 then begin
+      if abs_float ((!cfactor).Complex.re -. 1.0) > 1e-15 then begin
          Printf.printf "Encountered bad round-trip conversion factor: %.18g\n"
-         !cfactor;
+         (!cfactor).Complex.re;
          print_endline "units array:";
          Array.iter print_endline all_groups.(group);
          failwith ""
@@ -91,10 +91,11 @@ in
 let contrived = unit_of_string total_s in
 let grouped_units = group_units contrived false in
 let gu_str = string_of_unit grouped_units.factors in
-print_endline ("grouped      = " ^ (string_of_float grouped_units.coeff) ^ gu_str);
+print_endline ("grouped      = " ^ (string_of_float
+grouped_units.coeff.Complex.re) ^ gu_str);
 print_endline ("expected     = 1.76804093547e-37G*H*F^-1*Ohm^2*V^-2*mPa*Hz^2*eV^2*lbf^-1*K*A^4*tonm^2*km^3*day");
 let stand_units = standardize_units contrived in
-print_endline ("standardized = " ^ (string_of_float stand_units.coeff) ^ 
+print_endline ("standardized = " ^ (string_of_float stand_units.coeff.Complex.re) ^ 
 (string_of_unit stand_units.factors));
 print_endline ("expected     = 8.81537531531e-63K*A^-3*kg^7*m^9*s^-13");;
 

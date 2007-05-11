@@ -102,7 +102,7 @@ let mult_aux (unit_str : string) (unit_pow : float) (unit_set : float SMap.t) =
    in
    let new_pow = existing_pow +. unit_pow in
    if new_pow <> 0.0 then
-      SMap.add unit_str unit_pow unit_set
+      SMap.add unit_str new_pow unit_set
    else
       (* if unit powers happen to cancel exactly, remove them completely *)
       SMap.remove unit_str unit_set
@@ -349,13 +349,18 @@ let units_of_string (ss : string) (table : unit_table_t) : float SMap.t =
          else if List.length div_list = 1 && String.contains head '/' then
             units_failwith "illegal unit division syntax"
          else
-            let add_inverse set div_str =
+            (* the tail of div_list consists of terms which followed division
+             * operators, so we negate the exponents before multiplying out
+             * these terms *)
+            let mult_inverse set div_str =
                let (div_unit_str, div_unit_pow) = unit_of_term div_str in
                mult_aux div_unit_str (~-. div_unit_pow) set
             in
             let set_with_inverses = 
-               List.fold_left add_inverse set (List.tl div_list)
+               List.fold_left mult_inverse set (List.tl div_list)
             in
+            (* the head of div_list is multiplied, not divided, because it
+             * preceded a division operator *)
             let (mult_unit_str, mult_unit_pow) = unit_of_term (List.hd div_list) in
             let next_set = mult_aux mult_unit_str mult_unit_pow set_with_inverses in
             build_unit_set tail next_set

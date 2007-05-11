@@ -126,61 +126,6 @@ let add_base_unit (unit_str : string) (preferred_prefix : prefix_t)
       )
 
 
-(* Given a leading coefficient and a set of unit definitions (mappings to base
- * units) considered to be multiplied together, compute an equivalent singular
- * unit definition (collecting like terms).
- *
- * In effect, this is doing an operation like 
- * (3)*(5_m/s)*(10_m^2)*(0.5_g) -> 75_m^3*g/s . *)
-let collect (terms : float * (unit_def_t SMap.t)) : unit_def_t =
-   let (leading_coeff, uncollected) = terms in
-   let collect_single (unit_str : string) (unit_def : unit_def_t)
-   (collection : unit_def_t) = {
-         coeff      = collection.coeff *. unit_def.coeff;
-         comp_units = SMap.fold mult_aux unit_def.comp_units 
-                      collection.comp_units
-   }
-   in
-   SMap.fold collect_single uncollected 
-   {coeff = leading_coeff; comp_units = SMap.empty}
-
-
-(* Given a unit definition (mapping to other known units), expand
- * out all the known units in terms of base units.  The leading
- * coefficient is prepended.
- *
- * In effect, this is doing an operation like
- * 0.1_N*Hz^2 -> (100)*(1_g*m/s^2)*(1_s^-2) . *)
-let expand (unit_def : unit_def_t) (table : unit_table_t) : 
-(float * (unit_def_t SMap.t)) =
-   let expand_single (unit_str : string) (unit_pow : float) =
-      let base_def = SMap.find unit_str table in
-      (* The powers of all the base units need to be multiplied
-       * by the power of this unit, and the coefficient needs
-       * to be exponentiated. *)
-      let exponentiate base_unit_pow = base_unit_pow *. unit_pow in {  
-         coeff      = base_def.coeff ** unit_pow;
-         comp_units = SMap.map exponentiate base_def.comp_units
-      }
-   in
-   let base_expansion = SMap.mapi expand_single unit_def.comp_units in
-   (unit_def.coeff, base_expansion)
-
-
-(* Add a unit definition to the table.  The definition is immediately 
- * recast in terms of base units only, and is stored in this form. *)
-let add_unit (unit_str : string) (unit_def : unit_def_t) 
-(table : unit_table_t) : unit_table_t =
-   if SMap.mem unit_str table then
-      units_failwith ("unit \"" ^ unit_str ^ "\" already declared")
-   else
-      begin try
-         let unit_base_def = collect (expand unit_def table) in
-         SMap.add unit_str unit_base_def table
-      with Not_found ->
-         units_failwith ("unit \"" ^ unit_str ^ "\" depends on an undefined unit")
-      end
-
 
 let prefix_string_table = Hashtbl.create 25;;
 Hashtbl.add prefix_string_table "y" Yocto;
@@ -270,7 +215,7 @@ let unit_rep_of_string (ss : string) (table : unit_table_t) : unit_rep_t =
    let rec test_prefixes plist =
       match plist with
       | [] ->
-         units_failwith "failed to match a unit prefix"
+         raise Not_found
       | head :: tail ->
          if is_prefix head ss then
             let suffix = Str.string_after ss (String.length head) in
@@ -290,11 +235,68 @@ let unit_rep_of_string (ss : string) (table : unit_table_t) : unit_rep_t =
       prefix = NoPrefix;
       base   = ss
    } else
+      test_prefixes prefix_list
+
+
+
+(* Given a leading coefficient and a set of unit definitions (mappings to base
+ * units) considered to be multiplied together, compute an equivalent singular
+ * unit definition (collecting like terms).
+ *
+ * In effect, this is doing an operation like 
+ * (3)*(5_m/s)*(10_m^2)*(0.5_g) -> 75_m^3*g/s . *)
+let collect (terms : float * (unit_def_t SMap.t)) : unit_def_t =
+   let (leading_coeff, uncollected) = terms in
+   let collect_single (unit_str : string) (unit_def : unit_def_t)
+   (collection : unit_def_t) = {
+         coeff      = collection.coeff *. unit_def.coeff;
+         comp_units = SMap.fold mult_aux unit_def.comp_units 
+                      collection.comp_units
+   }
+   in
+   SMap.fold collect_single uncollected 
+   {coeff = leading_coeff; comp_units = SMap.empty}
+
+
+(* Given a unit definition (mapping to other known units), expand
+ * out all the known units in terms of base units.  The leading
+ * coefficient is prepended.
+ *
+ * In effect, this is doing an operation like
+ * 0.1_N*Hz^2 -> (100)*(1_g*m/s^2)*(1_s^-2) . *)
+let expand (unit_def : unit_def_t) (table : unit_table_t) : 
+(float * (unit_def_t SMap.t)) =
+   let expand_single (unit_rep_str : string) (unit_pow : float) =
+      let unit_rep = unit_rep_of_string unit_rep_str table in
+      let base_def = SMap.find unit_rep.base table in
+      (* The powers of all the base units need to be multiplied
+       * by the power of this unit, and the coefficient needs
+       * to be exponentiated. *)
+      let prefix_base_coeff = (prefix_value unit_rep.prefix) *. base_def.coeff in
+      let exponentiate base_unit_pow = base_unit_pow *. unit_pow in {  
+         coeff      = prefix_base_coeff ** unit_pow;
+         comp_units = SMap.map exponentiate base_def.comp_units
+      }
+   in
+   let base_expansion = SMap.mapi expand_single unit_def.comp_units in
+   (unit_def.coeff, base_expansion)
+
+
+(* Add a unit definition to the table.  The definition is immediately 
+ * recast in terms of base units only, and is stored in this form. *)
+let add_unit (unit_str : string) (unit_def : unit_def_t) 
+(table : unit_table_t) : unit_table_t =
+   if SMap.mem unit_str table then
+      units_failwith ("unit \"" ^ unit_str ^ "\" already declared")
+   else
       begin try
-         test_prefixes prefix_list
-      with Units_error _ ->
-         units_failwith ("unrecognized unit \"" ^ ss ^ "\"")
+         let unit_base_def = collect (expand unit_def table) in
+         SMap.add unit_str unit_base_def table
+      with Not_found ->
+         units_failwith ("unit \"" ^ unit_str ^ "\" depends on an undefined unit")
       end
+
+
 
 
 (* Is this string a known unit (possibly with a prefix)? *)
@@ -387,5 +389,13 @@ let string_of_units (u : float SMap.t) : string =
    in
    let str_list_rev = SMap.fold gen_string u [] in
    String.concat "*" (List.rev str_list_rev)
+
+
+let dump_table (table : unit_table_t) =
+   let print_entry unit_str unit_def =
+      Printf.printf "%s -> %g_%s\n" unit_str unit_def.coeff
+      (string_of_units unit_def.comp_units)
+   in
+   SMap.iter print_entry table
 
 

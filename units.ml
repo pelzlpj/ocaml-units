@@ -398,6 +398,11 @@ let string_of_units (u : float SMap.t) : string =
    String.concat "*" (List.rev str_list_rev)
 
 
+let string_of_unit_def (unit_def : unit_def_t) : string =
+   Printf.sprintf "%g_%s" unit_def.coeff
+   (string_of_units unit_def.comp_units)
+
+
 (* Print out the tables of known units. *)
 let dump_table (known_units : unit_table_t) =
    let print_base_entry base_unit_str preferred_prefix =
@@ -412,6 +417,25 @@ let dump_table (known_units : unit_table_t) =
    SMap.iter print_base_entry known_units.base_table;
    Printf.printf "\nUNIT DEFINITIONS:\n--------------------------\n";
    SMap.iter print_entry known_units.def_table
+
+
+(* Refactor a set of units in terms of base units. *)
+let standardize_units (units : unit_def_t) (known_units : unit_table_t) :
+unit_def_t =
+   let base_units = collect (expand units known_units) in
+   (* base_units doesn't have any prefixes, so we need to add those in *)
+   let add_prefix unit_str unit_pow unit_total =
+      let prefix     = SMap.find unit_str known_units.base_table in
+      let prefix_str = string_of_prefix prefix in
+      let total_prefix_value = (prefix_value prefix) ** unit_pow in {
+         coeff      = unit_total.coeff /. total_prefix_value;
+         comp_units = SMap.add (prefix_str ^ unit_str) unit_pow unit_total.comp_units
+      }
+   in
+   SMap.fold add_prefix base_units.comp_units 
+   {coeff = base_units.coeff; comp_units = SMap.empty}
+
+
 
 
 

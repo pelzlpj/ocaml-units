@@ -88,9 +88,17 @@ type base_unit_table_t = prefix_t SMap.t
 
 (* The unit definition table maps string representations of units to
  * sets of base units. *)
-type unit_table_t = unit_def_t SMap.t
+type unit_def_table_t = unit_def_t SMap.t
 
-let empty_unit_table = SMap.empty
+type unit_table_t = {
+   base_table : base_unit_table_t;
+   def_table  : unit_def_table_t
+}
+
+let empty_unit_table = {
+   base_table = SMap.empty;
+   def_table  = SMap.empty
+}
 
 (* Multiply a single unit by a set of units, collecting like terms. *)
 let mult_aux (unit_str : string) (unit_pow : float) (unit_set : float SMap.t) =
@@ -110,8 +118,8 @@ let mult_aux (unit_str : string) (unit_pow : float) (unit_set : float SMap.t) =
 
 (* Create a new base unit with a preferred SI prefix. *)
 let add_base_unit (unit_str : string) (preferred_prefix : prefix_t) 
-(base_table : base_unit_table_t) (table : unit_table_t) =
-   if SMap.mem unit_str base_table then
+(known_units : unit_table_t) : unit_table_t =
+   if SMap.mem unit_str known_units.base_table then
       units_failwith ("base unit \"" ^ unit_str ^ "\" already declared")
    else
       (* We also enter this base unit into the main unit definion table
@@ -120,10 +128,10 @@ let add_base_unit (unit_str : string) (preferred_prefix : prefix_t)
       let unit_def = {
          coeff = 1.0; 
          comp_units = SMap.add unit_str 1.0 SMap.empty
-      } in (
-         SMap.add unit_str preferred_prefix base_table,
-         SMap.add unit_str unit_def table
-      )
+      } in {
+         base_table = SMap.add unit_str preferred_prefix known_units.base_table;
+         def_table  = SMap.add unit_str unit_def known_units.def_table
+      }
 
 
 
@@ -150,7 +158,7 @@ Hashtbl.add prefix_string_table "Z" Zetta;
 Hashtbl.add prefix_string_table "Y" Yotta;;
 
 let prefix_list = ["y"; "z"; "a"; "f"; "p"; "n"; "u"; "m"; 
-"c"; "da"; "d"; "h"; "k"; "M"; "G"; "T"; "P"; "E"; "Z"; "Y"];;
+"c"; "da"; "d"; "h"; "k"; "M"; "G"; "T"; "P"; "E"; "Z"; "Y"]
 
 let prefix_value (pre : prefix_t) = 
    match pre with
@@ -211,7 +219,7 @@ let is_prefix pre word =
 
 (* Given a string like "kg", try to parse it as the representation of a unit
  * with prefix. *)
-let unit_rep_of_string (ss : string) (table : unit_table_t) : unit_rep_t =
+let unit_rep_of_string (ss : string) (known_units : unit_table_t) : unit_rep_t =
    let rec test_prefixes plist =
       match plist with
       | [] ->
@@ -219,7 +227,7 @@ let unit_rep_of_string (ss : string) (table : unit_table_t) : unit_rep_t =
       | head :: tail ->
          if is_prefix head ss then
             let suffix = Str.string_after ss (String.length head) in
-            if SMap.mem suffix table then
+            if SMap.mem suffix known_units.def_table then
                let si_prefix = Hashtbl.find prefix_string_table head in {
                   prefix = si_prefix;
                   base   = suffix
@@ -231,7 +239,7 @@ let unit_rep_of_string (ss : string) (table : unit_table_t) : unit_rep_t =
    in
    (* Look first for matches with no prefix, so we can catch
     * units like "mmHg" *)
-   if SMap.mem ss table then {
+   if SMap.mem ss known_units.def_table then {
       prefix = NoPrefix;
       base   = ss
    } else
@@ -264,11 +272,11 @@ let collect (terms : float * (unit_def_t SMap.t)) : unit_def_t =
  *
  * In effect, this is doing an operation like
  * 0.1_N*Hz^2 -> (100)*(1_g*m/s^2)*(1_s^-2) . *)
-let expand (unit_def : unit_def_t) (table : unit_table_t) : 
+let expand (unit_def : unit_def_t) (known_units : unit_table_t) : 
 (float * (unit_def_t SMap.t)) =
    let expand_single (unit_rep_str : string) (unit_pow : float) =
-      let unit_rep = unit_rep_of_string unit_rep_str table in
-      let base_def = SMap.find unit_rep.base table in
+      let unit_rep = unit_rep_of_string unit_rep_str known_units in
+      let base_def = SMap.find unit_rep.base known_units.def_table in
       (* The powers of all the base units need to be multiplied
        * by the power of this unit, and the coefficient needs
        * to be exponentiated. *)
@@ -285,24 +293,23 @@ let expand (unit_def : unit_def_t) (table : unit_table_t) :
 (* Add a unit definition to the table.  The definition is immediately 
  * recast in terms of base units only, and is stored in this form. *)
 let add_unit (unit_str : string) (unit_def : unit_def_t) 
-(table : unit_table_t) : unit_table_t =
-   if SMap.mem unit_str table then
+(known_units : unit_table_t) : unit_table_t =
+   if SMap.mem unit_str known_units.def_table then
       units_failwith ("unit \"" ^ unit_str ^ "\" already declared")
    else
       begin try
-         let unit_base_def = collect (expand unit_def table) in
-         SMap.add unit_str unit_base_def table
+         let unit_base_def = collect (expand unit_def known_units) in
+         {known_units with def_table = SMap.add unit_str unit_base_def known_units.def_table}
       with Not_found ->
          units_failwith ("unit \"" ^ unit_str ^ "\" depends on an undefined unit")
       end
 
 
 
-
 (* Is this string a known unit (possibly with a prefix)? *)
-let is_known_unit (ss : string) (table : unit_table_t) =
+let is_known_unit (ss : string) (known_units : unit_table_t) =
    try
-      let _ = unit_rep_of_string ss table in
+      let _ = unit_rep_of_string ss known_units in
       true
    with _ ->
       false
@@ -311,7 +318,7 @@ let is_known_unit (ss : string) (table : unit_table_t) =
 (* Convert a string into an appropriate set of units.  Units should be
  * multiplied with '*', divided with '/', and raised to powers with '^'.
  * So the following would be a valid example: "kg^2*m/s^2/h*ft^-2". *)
-let units_of_string (ss : string) (table : unit_table_t) : float SMap.t =
+let units_of_string (ss : string) (known_units : unit_table_t) : float SMap.t =
    let mult_regex = Str.regexp "\\*"
    and div_regex  = Str.regexp "/" 
    and pow_regex  = Str.regexp "\\^" in
@@ -324,7 +331,7 @@ let units_of_string (ss : string) (table : unit_table_t) : float SMap.t =
       | unit_str :: [] ->
          if String.contains tt '^' then
             units_failwith "illegal unit exponentiation syntax"
-         else if is_known_unit unit_str table then
+         else if is_known_unit unit_str known_units then
             (unit_str, 1.0)
          else
             units_failwith ("unrecognized unit \"" ^ unit_str ^ "\"")
@@ -333,7 +340,7 @@ let units_of_string (ss : string) (table : unit_table_t) : float SMap.t =
             try float_of_string pow_str
             with _ -> units_failwith ("illegal unit power: \"" ^ pow_str ^ "\"")
          in
-         if is_known_unit unit_str table then
+         if is_known_unit unit_str known_units then
             (unit_str, pow)
          else
             units_failwith ("unrecognized unit \"" ^ unit_str ^ "\"")
@@ -391,11 +398,20 @@ let string_of_units (u : float SMap.t) : string =
    String.concat "*" (List.rev str_list_rev)
 
 
-let dump_table (table : unit_table_t) =
+(* Print out the tables of known units. *)
+let dump_table (known_units : unit_table_t) =
+   let print_base_entry base_unit_str preferred_prefix =
+      Printf.printf "%s (prefix \"%s\")\n" base_unit_str 
+      (string_of_prefix preferred_prefix)
+   in
    let print_entry unit_str unit_def =
       Printf.printf "%s -> %g_%s\n" unit_str unit_def.coeff
       (string_of_units unit_def.comp_units)
    in
-   SMap.iter print_entry table
+   Printf.printf "BASE UNITS:\n--------------------------\n";
+   SMap.iter print_base_entry known_units.base_table;
+   Printf.printf "\nUNIT DEFINITIONS:\n--------------------------\n";
+   SMap.iter print_entry known_units.def_table
+
 
 

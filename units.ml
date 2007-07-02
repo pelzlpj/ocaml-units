@@ -4,9 +4,8 @@
  * Copyright (C) 2007 Paul Pelzl
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU General Public License, Version 2,
+ * as published by the Free Software Foundation.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,13 +26,7 @@ let units_failwith ss =
    raise (Units_error ss)
 
 
-let c_of_f ff = {
-   Complex.re = ff;
-   Complex.im = 0.0;
-}
-
-let cpow f1 f2 = Complex.pow (c_of_f f1) (c_of_f f2)
-
+(* SI prefixes. *)
 type prefix_t =
    | NoPrefix
    | Yocto
@@ -65,11 +58,17 @@ type prefix_t =
 module SMap = Map.Make (String)
 
 
-(* A unit is defined in terms of a coefficient and an SMap representing a bunch
- * of dimensionally-orthogonal base units. *)
+(* Any number of units can be attached to a numeric value.  We call this a
+ * "unit set", and it is a mapping from the string representations of the
+ * units to the float powers which they are raised to. *)
+type unit_set_t = float SMap.t
+
+
+(* A unit *definition* is given in terms of a coefficient and a set of
+ * component units. *)
 type unit_def_t = {
    coeff      : float;
-   comp_units : float SMap.t
+   comp_units : unit_set_t
 }
 
 
@@ -95,13 +94,16 @@ type unit_table_t = {
    def_table  : unit_def_table_t
 }
 
+
+let empty_unit = SMap.empty
+
 let empty_unit_table = {
    base_table = SMap.empty;
    def_table  = SMap.empty
 }
 
 (* Multiply a single unit by a set of units, collecting like terms. *)
-let mult_aux (unit_str : string) (unit_pow : float) (unit_set : float SMap.t) =
+let mult_aux (unit_str : string) (unit_pow : float) (unit_set : unit_set_t) =
    let existing_pow =
       if SMap.mem unit_str unit_set then
          SMap.find unit_str unit_set
@@ -136,29 +138,33 @@ let add_base_unit (unit_str : string) (preferred_prefix : prefix_t)
 
 
 let prefix_string_table = Hashtbl.create 25;;
-Hashtbl.add prefix_string_table "y" Yocto;
-Hashtbl.add prefix_string_table "z" Zepto;
-Hashtbl.add prefix_string_table "a" Atto;
-Hashtbl.add prefix_string_table "f" Femto;
-Hashtbl.add prefix_string_table "p" Pico;
-Hashtbl.add prefix_string_table "n" Nano;
-Hashtbl.add prefix_string_table "u" Micro;
-Hashtbl.add prefix_string_table "m" Milli;
-Hashtbl.add prefix_string_table "c" Centi;
-Hashtbl.add prefix_string_table "d" Deci;
-Hashtbl.add prefix_string_table "da" Deka;
-Hashtbl.add prefix_string_table "h" Hecto;
-Hashtbl.add prefix_string_table "k" Kilo;
-Hashtbl.add prefix_string_table "M" Mega;
-Hashtbl.add prefix_string_table "G" Giga;
-Hashtbl.add prefix_string_table "T" Tera;
-Hashtbl.add prefix_string_table "P" Peta;
-Hashtbl.add prefix_string_table "E" Exa;
-Hashtbl.add prefix_string_table "Z" Zetta;
+Hashtbl.add prefix_string_table "y" Yocto;;
+Hashtbl.add prefix_string_table "z" Zepto;;
+Hashtbl.add prefix_string_table "a" Atto;;
+Hashtbl.add prefix_string_table "f" Femto;;
+Hashtbl.add prefix_string_table "p" Pico;;
+Hashtbl.add prefix_string_table "n" Nano;;
+Hashtbl.add prefix_string_table "u" Micro;;
+Hashtbl.add prefix_string_table "m" Milli;;
+Hashtbl.add prefix_string_table "c" Centi;;
+Hashtbl.add prefix_string_table "d" Deci;;
+Hashtbl.add prefix_string_table "da" Deka;;
+Hashtbl.add prefix_string_table "h" Hecto;;
+Hashtbl.add prefix_string_table "k" Kilo;;
+Hashtbl.add prefix_string_table "M" Mega;;
+Hashtbl.add prefix_string_table "G" Giga;;
+Hashtbl.add prefix_string_table "T" Tera;;
+Hashtbl.add prefix_string_table "P" Peta;;
+Hashtbl.add prefix_string_table "E" Exa;;
+Hashtbl.add prefix_string_table "Z" Zetta;;
 Hashtbl.add prefix_string_table "Y" Yotta;;
+Hashtbl.add prefix_string_table ""  NoPrefix;;
+let prefix_of_string s = Hashtbl.find prefix_string_table s;;
+
 
 let prefix_list = ["y"; "z"; "a"; "f"; "p"; "n"; "u"; "m"; 
-"c"; "da"; "d"; "h"; "k"; "M"; "G"; "T"; "P"; "E"; "Z"; "Y"]
+"c"; "da"; "d"; "h"; "k"; "M"; "G"; "T"; "P"; "E"; "Z"; "Y"];;
+
 
 let prefix_value (pre : prefix_t) = 
    match pre with
@@ -182,7 +188,7 @@ let prefix_value (pre : prefix_t) =
    | Peta     -> 1e15
    | Exa      -> 1e18
    | Zetta    -> 1e21
-   | Yotta    -> 1e24;;
+   | Yotta    -> 1e24
 
 let string_of_prefix (pre : prefix_t) = 
    match pre with
@@ -206,7 +212,7 @@ let string_of_prefix (pre : prefix_t) =
    | Peta     -> "P"
    | Exa      -> "E"
    | Zetta    -> "Z"
-   | Yotta    -> "Y";;
+   | Yotta    -> "Y"
 
 
 (* Is 'pre' a prefix of 'word'? *)
@@ -214,7 +220,7 @@ let is_prefix pre word =
    if String.length word >= String.length pre then
       pre = (String.sub word 0 (String.length pre))
    else
-      false;;
+      false
 
 
 (* Given a string like "kg", try to parse it as the representation of a unit
@@ -318,7 +324,7 @@ let is_known_unit (ss : string) (known_units : unit_table_t) =
 (* Convert a string into an appropriate set of units.  Units should be
  * multiplied with '*', divided with '/', and raised to powers with '^'.
  * So the following would be a valid example: "kg^2*m/s^2/h*ft^-2". *)
-let units_of_string (ss : string) (known_units : unit_table_t) : float SMap.t =
+let units_of_string (ss : string) (known_units : unit_table_t) : unit_set_t =
    let mult_regex = Str.regexp "\\*"
    and div_regex  = Str.regexp "/" 
    and pow_regex  = Str.regexp "\\^" in
@@ -381,7 +387,7 @@ let units_of_string (ss : string) (known_units : unit_table_t) : float SMap.t =
 (* Generate a string representation of a set of units.
  * FIXME: this will generate an alphabetical unit ordering.
  * That's probably a little too simplistic. *)
-let string_of_units (u : float SMap.t) : string =
+let string_of_units (u : unit_set_t) : string =
    let gen_string unit_str unit_pow str_list =
       if unit_pow <> 0.0 then
          let str_rep = 
@@ -397,6 +403,30 @@ let string_of_units (u : float SMap.t) : string =
    let str_list_rev = SMap.fold gen_string u [] in
    String.concat "*" (List.rev str_list_rev)
 
+
+(* Convert a string into an appropriate unit definition.  Units are specified
+ * as above, but a float coefficient is prepended like so:
+ * "2.3_N*m^2". *)
+let unit_def_of_string (ss : string) (known_units : unit_table_t) : unit_def_t =
+   let split_regex = Str.regexp "_" in
+   let split_str = Str.split split_regex ss in
+   if List.length split_str <> 2 then
+      units_failwith ("unrecognized format for unit definition \"" ^
+         ss ^ "\"")
+   else
+      let float_str = List.hd split_str
+      and units_str = List.hd (List.tl split_str) in
+      begin try
+         let c = float_of_string float_str
+         and u = units_of_string units_str known_units in {
+            coeff = c;
+            comp_units = u
+         }
+      with Failure "float_of_string" ->
+         units_failwith ("unrecognized format for unit definition \"" ^
+            ss ^ "\"")
+      end
+         
 
 let string_of_unit_def (unit_def : unit_def_t) : string =
    Printf.sprintf "%g_%s" unit_def.coeff
@@ -420,8 +450,9 @@ let dump_table (known_units : unit_table_t) =
 
 
 (* Refactor a set of units in terms of base units. *)
-let standardize_units (units : unit_def_t) (known_units : unit_table_t) :
+let standardize_units (u : unit_set_t) (known_units : unit_table_t) :
 unit_def_t =
+   let units = {coeff = 1.0; comp_units = u} in
    let base_units = collect (expand units known_units) in
    (* base_units doesn't have any prefixes, so we need to add those in *)
    let add_prefix unit_str unit_pow unit_total =
@@ -436,6 +467,34 @@ unit_def_t =
    {coeff = base_units.coeff; comp_units = SMap.empty}
 
 
+(* conversion_factor a b t
+ * computes the conversion factor 'f' such that a == f*b.
+ * Raises an exception if the units are dimensionally incompatible. *)
+let conversion_factor (a : unit_set_t) (b : unit_set_t) 
+(known_units : unit_table_t) : float =
+   let a_std = standardize_units a known_units
+   and b_std = standardize_units b known_units in
+   if a_std.comp_units <> b_std.comp_units then
+      units_failwith "units are dimensionally incompatible"
+   else
+      a_std.coeff /. b_std.coeff
 
+
+(* Raise a set of units to a power. *)
+let pow (u : unit_set_t) (p : float) : unit_set_t =
+   let f x = x *. p in SMap.map f u
+
+
+(* Multiply two unit sets together. *)
+let mult (a : unit_set_t) (b : unit_set_t) =
+   SMap.fold mult_aux a b
+
+
+(* Divide two unit sets (a/b). *)
+let div (a : unit_set_t) (b : unit_set_t) =
+   let div_aux unit_str unit_pow unit_set =
+      mult_aux unit_str (~-. unit_pow) unit_set
+   in
+   SMap.fold div_aux b a
 
 

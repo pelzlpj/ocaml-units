@@ -24,6 +24,7 @@
 
 open Units;;
 
+(*
 let avagadro_number              = unit_of_float_string 6.0221367e23 "mol^-1";;
 let boltzmann                    = unit_of_float_string 1.380658e-23 "J/K";;
 (* HP48 drops the m^3 for the following.  Not sure why. *)
@@ -54,7 +55,7 @@ let photon_frequency             = unit_of_float_string 2.4179883e14 "Hz";;
 let compton_wavelength           = unit_of_float_string 0.00242631058 "nm";;
 let wien                         = unit_of_float_string 0.002897756 "m*K";;
 let dielectric_silicon           = unit_of_float_string 11.9 "";;
-
+*)
 
 
 (* arch-tag: DO_NOT_CHANGE_1c6c88d4-3b57-4b5a-85fc-02372437ea3f *)

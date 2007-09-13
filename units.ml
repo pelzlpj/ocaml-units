@@ -406,26 +406,28 @@ let string_of_units (u : unit_set_t) : string =
 
 (* Convert a string into an appropriate unit definition.  Units are specified
  * as above, but a float coefficient is prepended like so:
- * "2.3_N*m^2". *)
+ * "2.3_N*m^2".  This can also handle a pure numeric constant.  *)
 let unit_def_of_string (ss : string) (known_units : unit_table_t) : unit_def_t =
    let split_regex = Str.regexp "_" in
    let split_str = Str.split split_regex ss in
-   if List.length split_str <> 2 then
-      units_failwith ("unrecognized format for unit definition \"" ^
-         ss ^ "\"")
-   else
-      let float_str = List.hd split_str
-      and units_str = List.hd (List.tl split_str) in
-      begin try
+   begin try
+      if List.length split_str <> 2 then
+         let c = float_of_string ss in {
+            coeff      = c;
+            comp_units = empty_unit
+         }
+      else
+         let float_str = List.hd split_str
+         and units_str = List.hd (List.tl split_str) in
          let c = float_of_string float_str
          and u = units_of_string units_str known_units in {
-            coeff = c;
+            coeff      = c;
             comp_units = u
          }
-      with Failure "float_of_string" ->
-         units_failwith ("unrecognized format for unit definition \"" ^
-            ss ^ "\"")
-      end
+   with Failure "float_of_string" ->
+      units_failwith ("unrecognized format for unit definition \"" ^
+         ss ^ "\"")
+   end
          
 
 let string_of_unit_def (unit_def : unit_def_t) : string =
